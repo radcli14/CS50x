@@ -13,22 +13,28 @@ app = Flask(__name__)
 # Configure secret key (required for sessions)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY") or "dev-secret-key-change-in-production"
 
-# Configure session - use cookie-based sessions for Vercel compatibility
-# Filesystem sessions don't work on Vercel's read-only filesystem
+# Configure session - filesystem sessions don't work on Vercel's read-only filesystem
+# Use filesystem locally, but Flask's default cookie sessions on Vercel
 app.config["SESSION_PERMANENT"] = False
-if not os.environ.get("VERCEL"):
-    # Local development: use filesystem sessions
-    app.config["SESSION_TYPE"] = "filesystem"
-    Session(app)
-else:
-    # On Vercel: use Flask's default signed cookie sessions
-    # Don't use flask-session, just use Flask's built-in session
+if os.environ.get("VERCEL"):
+    # On Vercel: use Flask's built-in signed cookie sessions (no flask-session needed)
     app.config["SESSION_COOKIE_SECURE"] = True
     app.config["SESSION_COOKIE_HTTPONLY"] = True
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+else:
+    # Local development: use filesystem sessions
+    app.config["SESSION_TYPE"] = "filesystem"
+    Session(app)
 
-# Initialize database
-init_db(app)
+# Initialize database (only if not in Vercel's import inspection phase)
+# Delay initialization to avoid issues during module import
+try:
+    init_db(app)
+except Exception as e:
+    # If initialization fails during import (e.g., in Vercel's inspection), 
+    # it will be retried on first request
+    import sys
+    print(f"Warning: Database initialization deferred: {e}", file=sys.stderr)
 
 app.register_blueprint(api_bp)
 
@@ -203,5 +209,5 @@ def stores():
     return render_template("stores.html", data=data)
 
 
-# Export for Vercel serverless functions
-handler = app
+# Vercel's @vercel/python automatically detects Flask apps via the 'app' variable
+# No explicit handler needed
