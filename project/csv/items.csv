@@ -1,0 +1,39 @@
+id,name,quantity,unit
+coffee_bm,Coffee,250,grams
+bananas,Bananas,1,banana
+granola_bar_bm,Granola,6,bars
+spinach_bag_bm,Spinach,,
+salad_bag_bm,Salad,70,grams
+tomato_cherry_bm,Tomatos ,250,grams
+pizza,Pizza,1,pizza
+tortilla_espanola,Tortilla,300,grams
+pasta_sauce_jar,Pasta Sauce,400,grams
+chorizo_sausage_bm,Chorizo Sausage,,
+cheese_shredded,Shredded Cheese,200,grams
+broccoli_frozen,Frozen Broccoli,,
+carrots_baby,Carrots,125,grams
+chorizo_pamplona,Chorizo Sliced,240,grams
+potato_chips,Potato Chips,150,grams
+chicken_breast,Chicken Breast,,
+bell_pepper,Bell Pepper,1,pepper
+avocado,Avocado,1,avocado
+grapes_red,Red Grapes,500,grams
+apple,Apple,1,apple
+rice,Rice,1,kilogram
+yogurt_cup,Yogurt,1,cup
+carrots_sliced,Carrots,180,grams
+cheese_tapas,Tapas Cheese,330,grams
+coffee_merc,Coffee,500,grams
+soup_crema_verdura,Vegetable Cream Soup,500,milliliter
+chicken_wings,Chicken Wings,600,grams
+albondigas,Albondigas,24,meatballs
+chicken_drumsticks,Chicken Drumsticks,6,drumsticks
+ravioli,Ravioli,250,grams
+brussels_frozen,Brussels Sprouts,450,grams 
+olive_oil,Olive Oil,1,liter
+shishito,Shishito Peppers,200,grams
+salad_dressing,Salad Dressing,400,milliliter
+tomato_rama,Tomato,,
+cucumber,Cucumber,,
+ham_serrano,Serrano Ham,,
+chicken_thigh,Chicken Thighs,,

@@ -1,5 +1,5 @@
 import sqlite3
-from flask import g
+from flask import g, session
 
 # Database file path
 DATABASE = "mealplan.db"
@@ -21,6 +21,15 @@ def get_db():
         db = g._database = sqlite3.connect(DATABASE)
         db.row_factory = sqlite3.Row  # Makes rows accessible by column name
     return db
+
+
+def get_user_data():
+    """Get the active user's data"""
+    db = get_db()
+    rows = db.execute("SELECT * FROM users WHERE id = ?", (session["user_id"],)).fetchall()
+    if len(rows) > 0:
+        return dict(rows[0])
+    return None  # Return None if user not found
 
 
 def close_db(exception):
