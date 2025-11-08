@@ -11,10 +11,21 @@ from database import get_db, init_db, get_user_data
 # Configure application
 app = Flask(__name__)
 
-# Configure session to use filesystem (instead of signed cookies)
-app.config["SESSION_PERMANENT"] = False
-app.config["SESSION_TYPE"] = "filesystem"
-Session(app)
+# Configure session storage
+# Check if we're running on Vercel (serverless environment)
+# Vercel sets VERCEL environment variable
+is_vercel = os.environ.get("VERCEL") == "1"
+
+if is_vercel:
+    # On Vercel, use Flask's default signed cookie sessions (filesystem not available)
+    app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production")
+    app.config["SESSION_PERMANENT"] = False
+    # Flask will use signed cookies by default when Session is not configured
+else:
+    # Local development: use filesystem sessions
+    app.config["SESSION_PERMANENT"] = False
+    app.config["SESSION_TYPE"] = "filesystem"
+    Session(app)
 
 # Initialize database connection handling
 init_db(app)
