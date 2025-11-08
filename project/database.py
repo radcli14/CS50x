@@ -40,8 +40,17 @@ def _ensure_schema_initialized(db):
     Uses a flag in Flask's g to avoid checking on every request.
     """
     if not getattr(g, '_schema_initialized', False):
-        init_schema(db)
-        g._schema_initialized = True
+        try:
+            init_schema(db)
+            g._schema_initialized = True
+        except Exception as e:
+            # Log the error but don't fail silently
+            import sys
+            import traceback
+            error_msg = f"Schema initialization failed: {str(e)}\n{traceback.format_exc()}"
+            print(error_msg, file=sys.stderr)
+            # Re-raise so the error is visible
+            raise
 
 
 def get_user_data():
@@ -155,20 +164,31 @@ def _import_csv_data(db, cursor):
     Import CSV data into the database.
     This is called only when tables are first created.
     """
+    import sys
+    
     # Get the project root directory (parent of csv folder)
     # Try multiple path resolution strategies for different deployment scenarios
     current_file = os.path.abspath(__file__)
     project_root = os.path.dirname(current_file)
     csv_folder = os.path.join(project_root, "csv")
     
+    # Log path resolution for debugging
+    print(f"DEBUG: Looking for CSV files. Current file: {current_file}", file=sys.stderr)
+    print(f"DEBUG: Project root: {project_root}", file=sys.stderr)
+    print(f"DEBUG: CSV folder: {csv_folder}", file=sys.stderr)
+    print(f"DEBUG: CSV folder exists: {os.path.exists(csv_folder)}", file=sys.stderr)
+    print(f"DEBUG: CWD: {os.getcwd()}", file=sys.stderr)
+    
     # If csv folder doesn't exist at expected location, try alternative paths
     # This handles Vercel's deployment structure where files might be in different locations
     if not os.path.exists(csv_folder):
         # Try relative to current working directory
         csv_folder = os.path.join(os.getcwd(), "csv")
+        print(f"DEBUG: Trying CWD path: {csv_folder}, exists: {os.path.exists(csv_folder)}", file=sys.stderr)
         if not os.path.exists(csv_folder):
-            # Try as absolute path from project root
+            # Try as relative path
             csv_folder = "csv"
+            print(f"DEBUG: Trying relative path: {csv_folder}, exists: {os.path.exists(csv_folder)}", file=sys.stderr)
     
     # Import stores
     stores_path = os.path.join(csv_folder, "stores.csv")
