@@ -1,101 +1,187 @@
-from flask import Flask
+from datetime import datetime
 from endpoints import api_bp
+from flask import Flask, flash, redirect, render_template, request, session
+from flask_session import Session
+from werkzeug.security import check_password_hash, generate_password_hash
 
+from helpers import apology, login_required
+from database import get_db, init_db, get_user_data
 
 app = Flask(__name__)
 
 
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_TYPE"] = "filesystem"
+Session(app)
+
 app.register_blueprint(api_bp)
 
 
-@app.get("/")
-def read_root():
-    return """
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Vercel + Flask</title>
-        <link rel="icon" type="image/svg+xml" href="/favicon.ico">
-        <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body {
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-                background-color: #000000; color: #ffffff; line-height: 1.6; min-height: 100vh;
-                display: flex; flex-direction: column;
-            }
-            header { border-bottom: 1px solid #333333; padding: 0; }
-            nav { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; padding: 1rem 2rem; gap: 2rem; }
-            .logo { font-size: 1.25rem; font-weight: 600; color: #ffffff; text-decoration: none; }
-            .nav-links { display: flex; gap: 1.5rem; margin-left: auto; }
-            .nav-links a { text-decoration: none; color: #888888; padding: 0.5rem 1rem; border-radius: 6px; transition: all 0.2s ease; font-size: 0.875rem; font-weight: 500; }
-            .nav-links a:hover { color: #ffffff; background-color: #111111; }
-            main { flex: 1; max-width: 1200px; margin: 0 auto; padding: 4rem 2rem; display: flex; flex-direction: column; align-items: center; text-align: center; }
-            .hero { margin-bottom: 3rem; }
-            .hero-code { margin-top: 2rem; width: 100%; max-width: 900px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
-            .hero-code pre { background-color: #0a0a0a; border: 1px solid #333333; border-radius: 8px; padding: 1.5rem; text-align: left; grid-column: 1 / -1; }
-            h1 { font-size: 3rem; font-weight: 700; margin-bottom: 1rem; background: linear-gradient(to right, #ffffff, #888888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-            .subtitle { font-size: 1.25rem; color: #888888; margin-bottom: 2rem; max-width: 600px; }
-            .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; width: 100%; max-width: 900px; }
-            .card { background-color: #111111; border: 1px solid #333333; border-radius: 8px; padding: 1.5rem; transition: all 0.2s ease; text-align: left; }
-            .card:hover { border-color: #555555; transform: translateY(-2px); }
-            .card h3 { font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; color: #ffffff; }
-            .card p { color: #888888; font-size: 0.875rem; margin-bottom: 1rem; }
-            .card a { display: inline-flex; align-items: center; color: #ffffff; text-decoration: none; font-size: 0.875rem; font-weight: 500; padding: 0.5rem 1rem; background-color: #222222; border-radius: 6px; border: 1px solid #333333; transition: all 0.2s ease; }
-            .card a:hover { background-color: #333333; border-color: #555555; }
-            .status-badge { display: inline-flex; align-items: center; gap: 0.5rem; background-color: #0070f3; color: #ffffff; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 500; margin-bottom: 2rem; }
-            .status-dot { width: 6px; height: 6px; background-color: #00ff88; border-radius: 50%; }
-            pre { background-color: #0a0a0a; border: 1px solid #333333; border-radius: 6px; padding: 1rem; overflow-x: auto; margin: 0; }
-            code { font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace; font-size: 0.85rem; line-height: 1.5; color: #ffffff; }
-            .keyword { color: #ff79c6; }
-            .string { color: #f1fa8c; }
-            .function { color: #50fa7b; }
-            .class { color: #8be9fd; }
-            .module { color: #8be9fd; }
-            .variable { color: #f8f8f2; }
-            .decorator { color: #ffb86c; }
-            @media (max-width: 768px) {
-                nav { padding: 1rem; flex-direction: column; gap: 1rem; }
-                .nav-links { margin-left: 0; }
-                main { padding: 2rem 1rem; }
-                h1 { font-size: 2rem; }
-                .hero-code { grid-template-columns: 1fr; }
-                .cards { grid-template-columns: 1fr; }
-            }
-        </style>
-    </head>
-    <body>
-        <header>
-            <nav>
-                <a href="/" class="logo">Vercel + Flask</a>
-                <div class="nav-links">
-                    <a href="/api/data">API</a>
-                </div>
-            </nav>
-        </header>
-        <main>
-            <div class="hero">
-                <h1>Vercel + Flask</h1>
-                <div class="hero-code">
-                    <pre><code><span class="keyword">from</span> <span class="module">flask</span> <span class="keyword">import</span> <span class="class">Flask</span>
+@app.route("/change_password", methods=["GET", "POST"])
+@login_required
+def change_password():
+    """Change the user's password"""
 
-<span class="variable">app</span> = <span class="class">Flask</span>(<span class="string">__name__</span>)
+    if request.method == "POST":
+        # Get current user data, as well as form data
+        data = get_user_data()
+        old_password = request.form.get("old_password")
+        new_password = request.form.get("new_password")
+        confirmation = request.form.get("confirmation")
 
-<span class="decorator">@app.get</span>(<span class="string">"/"</span>)
-<span class="keyword">def</span> <span class="function">read_root</span>():
-    <span class="keyword">return</span> {<span class="string">"Python"</span>: <span class="string">"on Vercel"</span>}</code></pre>
-                </div>
-            </div>
+        # Check that the old password matches the user's current password
+        if not old_password:
+            return apology("Please enter your existing password", 403)
+        if not check_password_hash(data["hash"], old_password):
+            return apology("You entered your existing password incorrectly", 403)
 
-            <div class="cards">
-                <div class="card">
-                    <h3>Sample Data</h3>
-                    <p>Access sample JSON data through our REST API. Perfect for testing and development purposes.</p>
-                    <a href="/api/data">Get Data →</a>
-                </div>
-            </div>
-        </main>
-    </body>
-    </html>
-    """
+        # Check that a new password was entered
+        if not new_password:
+            return apology("Please enter a new password", 403)
+
+        if confirmation != new_password:
+            return apology("Your confirmation does not match the new password", 403)
+
+        # Create a secure hash of the **new** password
+        hash = generate_password_hash(new_password)
+
+        # Update the user's password in the database
+        db = get_db()
+        db.execute("UPDATE users SET hash = ? WHERE id = ?", (hash, session["user_id"]))
+        db.commit()  # Important: commit the transaction
+
+        # Redirect back to the index
+        return redirect("/")
+
+    else:
+        return render_template("change_password.html")
+
+
+@app.route("/")
+@login_required
+def index():
+    data=get_user_data()
+    print(data)
+    return render_template("index.html", data=data)
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    """Log user in"""
+
+    # Forget any user_id
+    session.clear()
+
+    # User reached route via POST (as by submitting a form via POST)
+    if request.method == "POST":
+        # Ensure username was submitted
+        if not request.form.get("username"):
+            return apology("must provide username", 403)
+
+        # Ensure password was submitted
+        elif not request.form.get("password"):
+            return apology("must provide password", 403)
+
+        # Query database for username
+        db = get_db()
+        rows = db.execute(
+            "SELECT * FROM users WHERE username = ?", (request.form.get("username"),)
+        ).fetchall()
+
+        # Ensure username exists and password is correct
+        if len(rows) != 1 or not check_password_hash(
+            rows[0]["hash"], request.form.get("password")
+        ):
+            return apology("invalid username and/or password", 403)
+
+        # Remember which user has logged in
+        session["user_id"] = rows[0]["id"]
+
+        # Redirect user to home page
+        return redirect("/")
+
+    # User reached route via GET (as by clicking a link or via redirect)
+    else:
+        return render_template("login.html")
+
+
+@app.route("/lists")
+@login_required
+def lists():
+    """Show the user's lists"""
+    data=get_user_data()
+    return render_template("lists.html", data=data)
+
+
+@app.route("/logout")
+def logout():
+    """Log user out"""
+
+    # Forget any user_id
+    session.clear()
+
+    # Redirect user to login form
+    return redirect("/")
+
+
+@app.route("/meals")
+@login_required
+def meals():
+    """Show the user's meals"""
+    data=get_user_data()
+    return render_template("meals.html", data=data)
+
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    """Register a new user"""
+    # User reached route via POST (as by submitting a form via POST)
+    if request.method == "POST":
+        # Ensure username was submitted, and is not already in use
+        username = request.form.get("username")
+        if not username:
+            return apology("must provide username", 400)
+        
+        db = get_db()
+        rows = db.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchall()
+        if len(rows) > 0:
+            return apology(f"username {username} is already in use")
+
+        # Ensure password was submitted
+        password = request.form.get("password")
+        if not password:
+            return apology("must provide password", 400)
+
+        # Ensure password and confirmation match
+        confirmation = request.form.get("confirmation")
+        if not confirmation:
+            return apology("must provide confirmation", 400)
+        if password != confirmation:
+            return apology("password and confirmation must match")
+
+        # Create a secure hash of the password
+        hash = generate_password_hash(password)
+
+        # Insert this user into the database
+        db.execute("INSERT INTO users (username, hash) VALUES (?, ?)", (username, hash))
+        db.commit()  # Important: commit the transaction
+
+        # Get the new database entry with this user
+        rows = db.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchall()
+
+        # Add this user to the session
+        session["user_id"] = rows[0]["id"]
+
+        # Redirect user to home page
+        return redirect("/")
+
+    # User reached route via GET (as by clicking a link or via redirect)
+    else:
+        return render_template("register.html")
+
+@app.route("/stores")
+@login_required
+def stores():
+    """Show the user's stores"""
+    data=get_user_data()
+    return render_template("stores.html", data=data)
