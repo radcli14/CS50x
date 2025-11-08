@@ -3,16 +3,34 @@ import os
 import traceback
 
 # Force output to stderr immediately (Vercel captures this)
-# Flush immediately to ensure output appears even if process crashes
+# Also try writing to a file in /tmp as backup
 def log(msg):
+    # Write to stderr (Vercel should capture this)
     print(msg, file=sys.stderr, flush=True)
+    # Also write to stdout (sometimes Vercel captures this better)
+    print(msg, file=sys.stdout, flush=True)
+    # Backup: write to file in /tmp (if on Vercel)
+    if os.environ.get("VERCEL") == "1":
+        try:
+            with open("/tmp/vercel_debug.log", "a") as f:
+                f.write(f"{msg}\n")
+                f.flush()
+        except:
+            pass  # Don't fail if we can't write to file
 
-log("=" * 80)
-log("STARTING API/INDEX.PY IMPORT")
-log(f"Python version: {sys.version}")
-log(f"Current directory: {os.getcwd()}")
-log(f"Script location: {__file__}")
-log("=" * 80)
+# Wrap entire module in try/except to catch ANY error
+try:
+    log("=" * 80)
+    log("STARTING API/INDEX.PY IMPORT")
+    log(f"Python version: {sys.version}")
+    log(f"Current directory: {os.getcwd()}")
+    log(f"Script location: {__file__}")
+    log(f"VERCEL env var: {os.environ.get('VERCEL', 'NOT SET')}")
+    log("=" * 80)
+except Exception as e:
+    # Even logging can fail, so use basic print
+    print(f"CRITICAL: Failed to log startup: {e}", file=sys.stderr, flush=True)
+    print(traceback.format_exc(), file=sys.stderr, flush=True)
 
 # Add parent directory to path so we can import app
 try:
@@ -93,4 +111,28 @@ except Exception as e:
         }), 500
     
     handler = error_app
+
+# Final safety net - catch any unhandled exception
+except BaseException as e:
+    # Catch everything, including SystemExit and KeyboardInterrupt
+    error_msg = f"FATAL ERROR in api/index.py: {type(e).__name__}: {str(e)}\n"
+    error_msg += f"Traceback:\n{traceback.format_exc()}\n"
+    error_msg += f"Python path: {sys.path}\n"
+    error_msg += f"Current dir: {os.getcwd()}\n"
+    error_msg += f"VERCEL env: {os.environ.get('VERCEL', 'NOT SET')}\n"
+    # Try multiple ways to output
+    try:
+        print(error_msg, file=sys.stderr, flush=True)
+        print(error_msg, file=sys.stdout, flush=True)
+    except:
+        pass
+    # Write to file as last resort
+    try:
+        with open("/tmp/vercel_error.log", "w") as f:
+            f.write(error_msg)
+            f.flush()
+    except:
+        pass
+    # Re-raise so Vercel sees the error
+    raise
 

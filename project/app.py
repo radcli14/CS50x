@@ -5,7 +5,17 @@ import traceback
 # Add diagnostic logging for import
 # Flush immediately to ensure output appears even if process crashes
 def log(msg):
+    # Write to both stderr and stdout (Vercel might capture either)
     print(msg, file=sys.stderr, flush=True)
+    print(msg, file=sys.stdout, flush=True)
+    # Backup: write to file in /tmp (if on Vercel)
+    if os.environ.get("VERCEL") == "1":
+        try:
+            with open("/tmp/vercel_debug.log", "a") as f:
+                f.write(f"{msg}\n")
+                f.flush()
+        except:
+            pass  # Don't fail if we can't write to file
 
 log("=" * 80)
 log("STARTING APP.PY IMPORT")
@@ -108,6 +118,33 @@ except Exception as e:
 log("=" * 80)
 log("SUCCESS: APP.PY FULLY LOADED")
 log("=" * 80)
+
+
+@app.route("/debug/logs")
+def debug_logs():
+    """Diagnostic endpoint to view debug logs from /tmp"""
+    import json
+    logs = []
+    try:
+        if os.path.exists("/tmp/vercel_debug.log"):
+            with open("/tmp/vercel_debug.log", "r") as f:
+                logs.append({"file": "vercel_debug.log", "content": f.read()})
+    except Exception as e:
+        logs.append({"file": "vercel_debug.log", "error": str(e)})
+    
+    try:
+        if os.path.exists("/tmp/vercel_error.log"):
+            with open("/tmp/vercel_error.log", "r") as f:
+                logs.append({"file": "vercel_error.log", "content": f.read()})
+    except Exception as e:
+        logs.append({"file": "vercel_error.log", "error": str(e)})
+    
+    return json.dumps({
+        "logs": logs,
+        "vercel_env": os.environ.get("VERCEL", "NOT SET"),
+        "cwd": os.getcwd(),
+        "python_path": sys.path
+    }, indent=2)
 
 
 @app.route("/change_password", methods=["GET", "POST"])
