@@ -3,38 +3,42 @@ import os
 import traceback
 
 # Force output to stderr immediately (Vercel captures this)
-print("=" * 80, file=sys.stderr)
-print("STARTING API/INDEX.PY IMPORT", file=sys.stderr)
-print(f"Python version: {sys.version}", file=sys.stderr)
-print(f"Current directory: {os.getcwd()}", file=sys.stderr)
-print(f"Script location: {__file__}", file=sys.stderr)
-print("=" * 80, file=sys.stderr)
+# Flush immediately to ensure output appears even if process crashes
+def log(msg):
+    print(msg, file=sys.stderr, flush=True)
+
+log("=" * 80)
+log("STARTING API/INDEX.PY IMPORT")
+log(f"Python version: {sys.version}")
+log(f"Current directory: {os.getcwd()}")
+log(f"Script location: {__file__}")
+log("=" * 80)
 
 # Add parent directory to path so we can import app
 try:
     parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    print(f"Adding to path: {parent_dir}", file=sys.stderr)
+    log(f"Adding to path: {parent_dir}")
     sys.path.insert(0, parent_dir)
-    print(f"Python path: {sys.path}", file=sys.stderr)
+    log(f"Python path: {sys.path}")
 except Exception as e:
-    print(f"ERROR setting up path: {e}", file=sys.stderr)
-    print(traceback.format_exc(), file=sys.stderr)
+    log(f"ERROR setting up path: {e}")
+    log(traceback.format_exc())
     raise
 
 # Import the Flask app with granular error handling
-print("Attempting to import app...", file=sys.stderr)
+log("Attempting to import app...")
 try:
     from app import app
-    print("SUCCESS: app imported", file=sys.stderr)
+    log("SUCCESS: app imported")
     
-    print("Setting up handler...", file=sys.stderr)
+    log("Setting up handler...")
     # Vercel's Python runtime expects the app to be exported as 'handler'
     # This will be used as the WSGI application
     handler = app
-    print("Handler assigned", file=sys.stderr)
+    log("Handler assigned")
     
     # Add error handler to log errors
-    print("Setting up error handler...", file=sys.stderr)
+    log("Setting up error handler...")
     @app.errorhandler(Exception)
     def handle_exception(e):
         """Log all exceptions for debugging"""
@@ -54,9 +58,9 @@ try:
                 "message": "An error occurred"
             }), 500
     
-    print("=" * 80, file=sys.stderr)
-    print("SUCCESS: API/INDEX.PY FULLY LOADED", file=sys.stderr)
-    print("=" * 80, file=sys.stderr)
+    log("=" * 80)
+    log("SUCCESS: API/INDEX.PY FULLY LOADED")
+    log("=" * 80)
         
 except ImportError as e:
     # Specific handling for import errors
@@ -65,14 +69,14 @@ except ImportError as e:
     error_msg += f"Traceback:\n{traceback.format_exc()}\n"
     error_msg += f"Python path: {sys.path}\n"
     error_msg += f"Current dir: {os.getcwd()}\n"
-    print(error_msg, file=sys.stderr)
+    log(error_msg)
     raise
 except Exception as e:
     # If import fails, log the error
     # Note: We can't create a proper handler here because the app import failed
     # Vercel will show this error in the function logs
     error_msg = f"CRITICAL: Failed to import app: {str(e)}\n{traceback.format_exc()}"
-    print(error_msg, file=sys.stderr)
+    log(error_msg)
     
     # Create a minimal WSGI-compatible handler that will at least report the error
     from flask import Flask, jsonify
