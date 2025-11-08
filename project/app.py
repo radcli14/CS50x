@@ -108,6 +108,14 @@ def login():
         return render_template("login.html")
 
 
+@app.route("/lists")
+@login_required
+def lists():
+    """Show the user's lists"""
+    data=get_user_data()
+    return render_template("lists.html", data=data)
+
+
 @app.route("/logout")
 def logout():
     """Log user out"""
@@ -117,6 +125,14 @@ def logout():
 
     # Redirect user to login form
     return redirect("/")
+
+
+@app.route("/meals")
+@login_required
+def meals():
+    """Show the user's meals"""
+    data=get_user_data()
+    return render_template("meals.html", data=data)
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -165,3 +181,10 @@ def register():
     # User reached route via GET (as by clicking a link or via redirect)
     else:
         return render_template("register.html")
+
+@app.route("/stores")
+@login_required
+def stores():
+    """Show the user's stores"""
+    data=get_user_data()
+    return render_template("stores.html", data=data)
