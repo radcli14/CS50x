@@ -22,12 +22,26 @@ def get_db():
     """
     Get database connection.
     Reuses connection per request using Flask's g object.
+    Also ensures schema is initialized on first access (lazy initialization).
     """
     db = getattr(g, '_database', None)
     if db is None:
         db = g._database = sqlite3.connect(DATABASE)
         db.row_factory = sqlite3.Row  # Makes rows accessible by column name
+        # Lazy initialization: ensure schema exists on first connection
+        # This avoids initialization errors during module import
+        _ensure_schema_initialized(db)
     return db
+
+
+def _ensure_schema_initialized(db):
+    """
+    Check if schema is initialized, and initialize if needed.
+    Uses a flag in Flask's g to avoid checking on every request.
+    """
+    if not getattr(g, '_schema_initialized', False):
+        init_schema(db)
+        g._schema_initialized = True
 
 
 def get_user_data():
@@ -142,10 +156,19 @@ def _import_csv_data(db, cursor):
     This is called only when tables are first created.
     """
     # Get the project root directory (parent of csv folder)
-    # This works for both local development and Vercel deployment
+    # Try multiple path resolution strategies for different deployment scenarios
     current_file = os.path.abspath(__file__)
     project_root = os.path.dirname(current_file)
     csv_folder = os.path.join(project_root, "csv")
+    
+    # If csv folder doesn't exist at expected location, try alternative paths
+    # This handles Vercel's deployment structure where files might be in different locations
+    if not os.path.exists(csv_folder):
+        # Try relative to current working directory
+        csv_folder = os.path.join(os.getcwd(), "csv")
+        if not os.path.exists(csv_folder):
+            # Try as absolute path from project root
+            csv_folder = "csv"
     
     # Import stores
     stores_path = os.path.join(csv_folder, "stores.csv")
@@ -226,16 +249,14 @@ def init_db(app):
     """
     Initialize database connection handling for the Flask app.
     Registers the teardown handler to close connections.
-    Also ensures database schema exists.
+    
+    Note: Schema initialization is now lazy - it happens on first database access
+    rather than at import time. This prevents errors in serverless environments.
     
     Args:
         app: Flask application instance
     """
     app.teardown_appcontext(close_db)
-    
-    # Initialize schema on app startup
-    # This ensures tables exist, especially important for Vercel deployments
-    with app.app_context():
-        db = get_db()
-        init_schema(db)
+    # Schema initialization is now handled lazily in get_db()
+    # This avoids issues with app context during module import
 
