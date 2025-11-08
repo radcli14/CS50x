@@ -2,18 +2,39 @@ import sys
 import os
 import traceback
 
-# Add parent directory to path so we can import app
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Force output to stderr immediately (Vercel captures this)
+print("=" * 80, file=sys.stderr)
+print("STARTING API/INDEX.PY IMPORT", file=sys.stderr)
+print(f"Python version: {sys.version}", file=sys.stderr)
+print(f"Current directory: {os.getcwd()}", file=sys.stderr)
+print(f"Script location: {__file__}", file=sys.stderr)
+print("=" * 80, file=sys.stderr)
 
-# Import the Flask app with error handling
+# Add parent directory to path so we can import app
+try:
+    parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    print(f"Adding to path: {parent_dir}", file=sys.stderr)
+    sys.path.insert(0, parent_dir)
+    print(f"Python path: {sys.path}", file=sys.stderr)
+except Exception as e:
+    print(f"ERROR setting up path: {e}", file=sys.stderr)
+    print(traceback.format_exc(), file=sys.stderr)
+    raise
+
+# Import the Flask app with granular error handling
+print("Attempting to import app...", file=sys.stderr)
 try:
     from app import app
+    print("SUCCESS: app imported", file=sys.stderr)
     
+    print("Setting up handler...", file=sys.stderr)
     # Vercel's Python runtime expects the app to be exported as 'handler'
     # This will be used as the WSGI application
     handler = app
+    print("Handler assigned", file=sys.stderr)
     
     # Add error handler to log errors
+    print("Setting up error handler...", file=sys.stderr)
     @app.errorhandler(Exception)
     def handle_exception(e):
         """Log all exceptions for debugging"""
@@ -32,7 +53,20 @@ try:
                 "error": "Internal Server Error",
                 "message": "An error occurred"
             }), 500
+    
+    print("=" * 80, file=sys.stderr)
+    print("SUCCESS: API/INDEX.PY FULLY LOADED", file=sys.stderr)
+    print("=" * 80, file=sys.stderr)
         
+except ImportError as e:
+    # Specific handling for import errors
+    error_msg = f"IMPORT ERROR: Failed to import app\n"
+    error_msg += f"Error: {str(e)}\n"
+    error_msg += f"Traceback:\n{traceback.format_exc()}\n"
+    error_msg += f"Python path: {sys.path}\n"
+    error_msg += f"Current dir: {os.getcwd()}\n"
+    print(error_msg, file=sys.stderr)
+    raise
 except Exception as e:
     # If import fails, log the error
     # Note: We can't create a proper handler here because the app import failed

@@ -1,34 +1,109 @@
 import os
+import sys
+import traceback
 
-from datetime import datetime
-from flask import Flask, flash, redirect, render_template, request, session
-from flask_session import Session
-from werkzeug.security import check_password_hash, generate_password_hash
+# Add diagnostic logging for import
+print("=" * 80, file=sys.stderr)
+print("STARTING APP.PY IMPORT", file=sys.stderr)
+print(f"Python version: {sys.version}", file=sys.stderr)
+print("=" * 80, file=sys.stderr)
 
-from helpers import apology, login_required
-from database import get_db, init_db, get_user_data
+try:
+    print("Importing Flask...", file=sys.stderr)
+    from datetime import datetime
+    from flask import Flask, flash, redirect, render_template, request, session
+    print("Flask imported successfully", file=sys.stderr)
+except Exception as e:
+    print(f"ERROR importing Flask: {e}", file=sys.stderr)
+    print(traceback.format_exc(), file=sys.stderr)
+    raise
+
+try:
+    print("Importing flask_session...", file=sys.stderr)
+    from flask_session import Session
+    print("flask_session imported successfully", file=sys.stderr)
+except Exception as e:
+    print(f"ERROR importing flask_session: {e}", file=sys.stderr)
+    print(traceback.format_exc(), file=sys.stderr)
+    raise
+
+try:
+    print("Importing werkzeug...", file=sys.stderr)
+    from werkzeug.security import check_password_hash, generate_password_hash
+    print("werkzeug imported successfully", file=sys.stderr)
+except Exception as e:
+    print(f"ERROR importing werkzeug: {e}", file=sys.stderr)
+    print(traceback.format_exc(), file=sys.stderr)
+    raise
+
+try:
+    print("Importing helpers...", file=sys.stderr)
+    from helpers import apology, login_required
+    print("helpers imported successfully", file=sys.stderr)
+except Exception as e:
+    print(f"ERROR importing helpers: {e}", file=sys.stderr)
+    print(traceback.format_exc(), file=sys.stderr)
+    raise
+
+try:
+    print("Importing database...", file=sys.stderr)
+    from database import get_db, init_db, get_user_data
+    print("database imported successfully", file=sys.stderr)
+except Exception as e:
+    print(f"ERROR importing database: {e}", file=sys.stderr)
+    print(traceback.format_exc(), file=sys.stderr)
+    raise
 
 # Configure application
-app = Flask(__name__)
+print("Creating Flask app...", file=sys.stderr)
+try:
+    app = Flask(__name__)
+    print("Flask app created", file=sys.stderr)
+except Exception as e:
+    print(f"ERROR creating Flask app: {e}", file=sys.stderr)
+    print(traceback.format_exc(), file=sys.stderr)
+    raise
 
 # Configure session storage
 # Check if we're running on Vercel (serverless environment)
 # Vercel sets VERCEL environment variable
+print("Checking Vercel environment...", file=sys.stderr)
 is_vercel = os.environ.get("VERCEL") == "1"
+print(f"Is Vercel: {is_vercel}", file=sys.stderr)
 
-if is_vercel:
-    # On Vercel, use Flask's default signed cookie sessions (filesystem not available)
-    app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production")
-    app.config["SESSION_PERMANENT"] = False
-    # Flask will use signed cookies by default when Session is not configured
-else:
-    # Local development: use filesystem sessions
-    app.config["SESSION_PERMANENT"] = False
-    app.config["SESSION_TYPE"] = "filesystem"
-    Session(app)
+try:
+    if is_vercel:
+        # On Vercel, use Flask's default signed cookie sessions (filesystem not available)
+        print("Configuring for Vercel...", file=sys.stderr)
+        app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production")
+        app.config["SESSION_PERMANENT"] = False
+        # Flask will use signed cookies by default when Session is not configured
+        print("Vercel session config complete", file=sys.stderr)
+    else:
+        # Local development: use filesystem sessions
+        print("Configuring for local development...", file=sys.stderr)
+        app.config["SESSION_PERMANENT"] = False
+        app.config["SESSION_TYPE"] = "filesystem"
+        Session(app)
+        print("Local session config complete", file=sys.stderr)
+except Exception as e:
+    print(f"ERROR configuring sessions: {e}", file=sys.stderr)
+    print(traceback.format_exc(), file=sys.stderr)
+    raise
 
 # Initialize database connection handling
-init_db(app)
+print("Initializing database...", file=sys.stderr)
+try:
+    init_db(app)
+    print("Database initialized", file=sys.stderr)
+except Exception as e:
+    print(f"ERROR initializing database: {e}", file=sys.stderr)
+    print(traceback.format_exc(), file=sys.stderr)
+    raise
+
+print("=" * 80, file=sys.stderr)
+print("SUCCESS: APP.PY FULLY LOADED", file=sys.stderr)
+print("=" * 80, file=sys.stderr)
 
 
 @app.route("/change_password", methods=["GET", "POST"])
