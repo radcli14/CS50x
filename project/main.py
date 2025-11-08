@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from endpoints import api_bp
 from flask import Flask, flash, redirect, render_template, request, session
@@ -9,10 +10,25 @@ from database import get_db, init_db, get_user_data
 
 app = Flask(__name__)
 
+# Configure secret key (required for sessions)
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY") or "dev-secret-key-change-in-production"
 
+# Configure session - use cookie-based sessions for Vercel compatibility
+# Filesystem sessions don't work on Vercel's read-only filesystem
 app.config["SESSION_PERMANENT"] = False
-app.config["SESSION_TYPE"] = "filesystem"
-Session(app)
+if not os.environ.get("VERCEL"):
+    # Local development: use filesystem sessions
+    app.config["SESSION_TYPE"] = "filesystem"
+    Session(app)
+else:
+    # On Vercel: use Flask's default signed cookie sessions
+    # Don't use flask-session, just use Flask's built-in session
+    app.config["SESSION_COOKIE_SECURE"] = True
+    app.config["SESSION_COOKIE_HTTPONLY"] = True
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+
+# Initialize database
+init_db(app)
 
 app.register_blueprint(api_bp)
 
@@ -185,3 +201,7 @@ def stores():
     """Show the user's stores"""
     data=get_user_data()
     return render_template("stores.html", data=data)
+
+
+# Export for Vercel serverless functions
+handler = app
