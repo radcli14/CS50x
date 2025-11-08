@@ -28,3 +28,8 @@ def index():
 def login():
     """Log user in"""
     return render_template("login.html")
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    """Register a new user"""
+    return render_template("register.html")
