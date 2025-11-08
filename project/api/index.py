@@ -7,6 +7,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # Import the Flask app
 from app import app
 
-# Vercel's Python runtime expects the app to be exported
+# Vercel's Python runtime expects the app to be exported as 'handler'
 # This will be used as the WSGI application
+handler = app
 

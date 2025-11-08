@@ -1,8 +1,15 @@
 import sqlite3
+import os
+import csv
 from flask import g, session
 
 # Database file path
-DATABASE = "mealplan.db"
+# On Vercel, filesystem is read-only except /tmp
+# Use /tmp for database in serverless environments, otherwise use local path
+if os.environ.get("VERCEL") == "1":
+    DATABASE = "/tmp/mealplan.db"
+else:
+    DATABASE = "mealplan.db"
 # The database uses the schema:
 # CREATE TABLE users (
 #     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -42,13 +49,193 @@ def close_db(exception):
         db.close()
 
 
+def init_schema(db):
+    """
+    Initialize database schema if tables don't exist.
+    This ensures the database is ready to use.
+    Also imports CSV data if tables are being created for the first time.
+    """
+    cursor = db.cursor()
+    
+    # Check if users table exists
+    cursor.execute("""
+        SELECT name FROM sqlite_master 
+        WHERE type='table' AND name='users'
+    """)
+    
+    if not cursor.fetchone():
+        # Create users table
+        cursor.execute("""
+            CREATE TABLE users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                username TEXT NOT NULL,
+                hash TEXT NOT NULL
+            )
+        """)
+        
+        # Create stores table
+        cursor.execute("""
+            CREATE TABLE stores (
+                id INTEGER PRIMARY KEY NOT NULL,
+                name TEXT NOT NULL,
+                address TEXT
+            )
+        """)
+        
+        # Create items table
+        cursor.execute("""
+            CREATE TABLE items (
+                id TEXT PRIMARY KEY NOT NULL,
+                name TEXT NOT NULL,
+                quantity REAL,
+                unit TEXT
+            )
+        """)
+        
+        # Create lists table (junction table)
+        cursor.execute("""
+            CREATE TABLE lists (
+                id INTEGER NOT NULL,
+                item_id TEXT NOT NULL,
+                quantity INTEGER NOT NULL,
+                PRIMARY KEY (id, item_id),
+                FOREIGN KEY (item_id) REFERENCES items(id)
+            )
+        """)
+        
+        # Create meals table
+        cursor.execute("""
+            CREATE TABLE meals (
+                id INTEGER PRIMARY KEY NOT NULL,
+                user_id INTEGER NOT NULL,
+                date TEXT NOT NULL,
+                type TEXT NOT NULL,
+                summary TEXT,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        """)
+        
+        # Create trips table
+        cursor.execute("""
+            CREATE TABLE trips (
+                user_id INTEGER NOT NULL,
+                store_id INTEGER NOT NULL,
+                list_id INTEGER NOT NULL,
+                date TEXT NOT NULL,
+                summary TEXT,
+                PRIMARY KEY (user_id, store_id, list_id),
+                FOREIGN KEY (user_id) REFERENCES users(id),
+                FOREIGN KEY (store_id) REFERENCES stores(id),
+                FOREIGN KEY (list_id) REFERENCES lists(id)
+            )
+        """)
+        
+        db.commit()
+        
+        # Import CSV data after creating tables
+        _import_csv_data(db, cursor)
+
+
+def _import_csv_data(db, cursor):
+    """
+    Import CSV data into the database.
+    This is called only when tables are first created.
+    """
+    # Get the project root directory (parent of csv folder)
+    # This works for both local development and Vercel deployment
+    current_file = os.path.abspath(__file__)
+    project_root = os.path.dirname(current_file)
+    csv_folder = os.path.join(project_root, "csv")
+    
+    # Import stores
+    stores_path = os.path.join(csv_folder, "stores.csv")
+    if os.path.exists(stores_path):
+        try:
+            with open(stores_path, "r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    cursor.execute(
+                        "INSERT INTO stores (id, name, address) VALUES (?, ?, ?)",
+                        (int(row["id"]), row["name"], row["address"])
+                    )
+        except Exception as e:
+            print(f"Warning: Could not import stores.csv: {e}")
+    
+    # Import items
+    items_path = os.path.join(csv_folder, "items.csv")
+    if os.path.exists(items_path):
+        try:
+            with open(items_path, "r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    quantity = float(row["quantity"]) if row["quantity"] else None
+                    cursor.execute(
+                        "INSERT INTO items (id, name, quantity, unit) VALUES (?, ?, ?, ?)",
+                        (row["id"], row["name"], quantity, row["unit"] if row["unit"] else None)
+                    )
+        except Exception as e:
+            print(f"Warning: Could not import items.csv: {e}")
+    
+    # Import lists
+    lists_path = os.path.join(csv_folder, "lists.csv")
+    if os.path.exists(lists_path):
+        try:
+            with open(lists_path, "r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    cursor.execute(
+                        "INSERT INTO lists (id, item_id, quantity) VALUES (?, ?, ?)",
+                        (int(row["id"]), row["item_id"], int(row["quantity"]))
+                    )
+        except Exception as e:
+            print(f"Warning: Could not import lists.csv: {e}")
+    
+    # Import meals
+    meals_path = os.path.join(csv_folder, "meals.csv")
+    if os.path.exists(meals_path):
+        try:
+            with open(meals_path, "r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    cursor.execute(
+                        "INSERT INTO meals (id, user_id, date, type, summary) VALUES (?, ?, ?, ?, ?)",
+                        (int(row["id"]), int(row["user_id"]), row["date"], row["type"], row["summary"])
+                    )
+        except Exception as e:
+            print(f"Warning: Could not import meals.csv: {e}")
+    
+    # Import trips
+    trips_path = os.path.join(csv_folder, "trips.csv")
+    if os.path.exists(trips_path):
+        try:
+            with open(trips_path, "r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    cursor.execute(
+                        "INSERT INTO trips (user_id, store_id, list_id, date, summary) VALUES (?, ?, ?, ?, ?)",
+                        (int(row["user_id"]), int(row["store_id"]), int(row["list_id"]), row["date"], row["summary"])
+                    )
+        except Exception as e:
+            print(f"Warning: Could not import trips.csv: {e}")
+    
+    # Commit all CSV imports
+    db.commit()
+
+
 def init_db(app):
     """
     Initialize database connection handling for the Flask app.
     Registers the teardown handler to close connections.
+    Also ensures database schema exists.
     
     Args:
         app: Flask application instance
     """
     app.teardown_appcontext(close_db)
+    
+    # Initialize schema on app startup
+    # This ensures tables exist, especially important for Vercel deployments
+    with app.app_context():
+        db = get_db()
+        init_schema(db)
 
