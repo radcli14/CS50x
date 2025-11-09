@@ -207,7 +207,3 @@ def stores():
     """Show the user's stores"""
     data=get_user_data()
     return render_template("stores.html", data=data)
-
-
-# Vercel's @vercel/python automatically detects Flask apps via the 'app' variable
-# No explicit handler needed
