@@ -1,32 +1,32 @@
 id,user_id,date,type,summary
-0,1,10/25/25,Lunch,"Omelette with spinach and chorizo sausage, and chips"
-1,1,10/25/25,Dinner,"Pizza with chorizo, and salad with tomatoes "
-2,1,10/26/25,Breakfast,"Banana, granola, and yogurt"
-3,1,10/26/25,Hameikatako,"Chorizo, apple, cheese, and carrots"
-4,1,10/26/25,Lunch,Tortilla with salad
-5,1,10/26/25,Dinner,Pasta with chorizo and spinach
-6,1,10/27/25,Breakfast,"Banana, granola, and yogurt"
-7,1,10/27/25,Lunch,Pasta with chorizo and spinach
-8,1,10/27/25,Dinner,"Tacos with chicken, bell peppers, and avocado"
-9,1,10/28/25,Breakfast,"Banana, granola, and yogurt"
-10,1,10/28/25,Lunch,Tortilla with salad
-11,1,10/28/25,Dinner,Drumsticks with zucchini and rice
-12,1,10/29/25,Breakfast,"Banana, granola, and yogurt"
-13,1,10/29/25,Lunch,Tacos and salad
-14,1,10/29/25,Dinner,Drumsticks with zucchini and rice
-15,1,10/30/25,Breakfast,"Banana, granola, and yogurt"
-16,1,10/31/25,Breakfast,"Banana, granola, and yogurt"
-17,1,10/31/25,Hameikatako,"Carrots, grapes, cheese, serrano, and chips"
-18,1,10/31/25,Dinner,Pizza and salad
-19,1,11/2/25,Breakfast,"Banana, granola, and yogurt"
-20,1,11/2/25,Lunch,"Sandwich, apple, chips"
-21,1,11/2/25,Dinner,"Chicken wings, fries, and salad"
-22,1,11/3/25,Breakfast,"Banana, granola, and yogurt"
-23,1,11/6/25,Breakfast,"Banana, granola, and yogurt"
-24,1,11/6/25,Lunch,Tortila and salad
-25,1,11/6/25,Dinner,Tacos and shishito peppers
-26,1,11/7/25,Breakfast,"Banana, granola, and yogurt"
-27,1,11/7/25,Lunch,Tomato salad with cucumburs and cheese
-28,1,11/7/25,Dinner,Tortilla with salad
-29,1,11/8/25,Breakfast,"Banana, granola, and yogurt"
-30,1,11/8/25,Lunch,Tortilla with salad
+1,1,10/25/25,Lunch,"Omelette with spinach and chorizo sausage, and chips"
+2,1,10/25/25,Dinner,"Pizza with chorizo, and salad with tomatoes "
+3,1,10/26/25,Breakfast,"Banana, granola, and yogurt"
+4,1,10/26/25,Hameikatako,"Chorizo, apple, cheese, and carrots"
+5,1,10/26/25,Lunch,Tortilla with salad
+6,1,10/26/25,Dinner,Pasta with chorizo and spinach
+7,1,10/27/25,Breakfast,"Banana, granola, and yogurt"
+8,1,10/27/25,Lunch,Pasta with chorizo and spinach
+9,1,10/27/25,Dinner,"Tacos with chicken, bell peppers, and avocado"
+10,1,10/28/25,Breakfast,"Banana, granola, and yogurt"
+11,1,10/28/25,Lunch,Tortilla with salad
+12,1,10/28/25,Dinner,Drumsticks with zucchini and rice
+13,1,10/29/25,Breakfast,"Banana, granola, and yogurt"
+14,1,10/29/25,Lunch,Tacos and salad
+15,1,10/29/25,Dinner,Drumsticks with zucchini and rice
+16,1,10/30/25,Breakfast,"Banana, granola, and yogurt"
+17,1,10/31/25,Breakfast,"Banana, granola, and yogurt"
+18,1,10/31/25,Hameikatako,"Carrots, grapes, cheese, serrano, and chips"
+19,1,10/31/25,Dinner,Pizza and salad
+20,1,11/2/25,Breakfast,"Banana, granola, and yogurt"
+21,1,11/2/25,Lunch,"Sandwich, apple, chips"
+22,1,11/2/25,Dinner,"Chicken wings, fries, and salad"
+23,1,11/3/25,Breakfast,"Banana, granola, and yogurt"
+24,1,11/6/25,Breakfast,"Banana, granola, and yogurt"
+25,1,11/6/25,Lunch,Tortila and salad
+26,1,11/6/25,Dinner,Tacos and shishito peppers
+27,1,11/7/25,Breakfast,"Banana, granola, and yogurt"
+28,1,11/7/25,Lunch,Tomato salad with cucumburs and cheese
+29,1,11/7/25,Dinner,Tortilla with salad
+30,1,11/8/25,Breakfast,"Banana, granola, and yogurt"
+31,1,11/8/25,Lunch,Tortilla with salad

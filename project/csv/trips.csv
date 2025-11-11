@@ -1,7 +1,7 @@
-user_id,store_id,list_id,date,summary
-1,0,0,10/24/25,Short trip to gather sufficient food for a couple days after returning from vacation
-1,0,1,10/25/25,Short trip to bridge between the end of the weekend and next week
-1,1,2,10/28/25,Large trip to buy most of the food for the entire week
-1,0,3,10/30/25,Short trip to the BM
-1,2,4,11/1/25,Short trip to the Corte Ingles to cover the next two days during weekend and holiday
-1,1,5,11/3/25,Trip to the Mercadona to buy most of the week's food
+id,user_id,store_id,date,summary
+1,1,0,10/24/25,Short trip to gather sufficient food for a couple days after returning from vacation
+2,1,0,10/25/25,Short trip to bridge between the end of the weekend and next week
+3,1,1,10/28/25,Large trip to buy most of the food for the entire week
+4,1,0,10/30/25,Short trip to the BM
+5,1,2,11/1/25,Short trip to the Corte Ingles to cover the next two days during weekend and holiday
+6,1,1,11/3/25,Trip to the Mercadona to buy most of the week's food

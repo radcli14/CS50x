@@ -106,6 +106,7 @@ def login():
 
         # Query database for username
         db = get_db()
+        print("before error", db)
         rows = db.execute(
             "SELECT * FROM users WHERE username = ?", (request.form.get("username"),)
         ).fetchall()
