@@ -10,8 +10,13 @@ from werkzeug.security import check_password_hash, generate_password_hash
 url: str = os.environ.get("MEALPLAN_SUPABASE_URL") or "unknown-url"
 key: str = os.environ.get("MEALPLAN_SUPABASE_KEY") or "unknown-key"
 supabase: Client = create_client(url, key)
-#stores = supabase.table("Stores").select("*").execute()
-#print("stores", stores)
+
+
+def get_stores():
+    """Get all of the stores in the database (currently not by user)"""
+    response = supabase.table("Stores").select("*").execute()
+    return response.data
+
 
 def get_user_data():
     """Get the active user's data"""
@@ -21,6 +26,7 @@ def get_user_data():
 
 
 def login_user(request):
+    """Login a user with form data"""
     # Ensure username was submitted
     if not request.form.get("username"):
         return apology("must provide username", 403)

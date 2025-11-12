@@ -8,4 +8,21 @@
 
     <h1>Stores for {{ data.username }}</h1>
 
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Address</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for store in stores %}
+                <tr>
+                    <td>{{ store.name }}</td>
+                    <td>{{ store.address }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
 {% endblock %}

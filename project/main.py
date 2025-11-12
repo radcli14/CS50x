@@ -6,7 +6,7 @@ from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from helpers import apology, login_required
-from database import get_user_data, login_user, register_new_user
+from database import get_stores, get_user_data, login_user, register_new_user
 
 app = Flask(__name__)
 
@@ -135,5 +135,6 @@ def register():
 @login_required
 def stores():
     """Show the user's stores"""
-    data=get_user_data()
-    return render_template("stores.html", data=data)
+    data = get_user_data()
+    stores = get_stores()
+    return render_template("stores.html", data=data, stores=stores)
