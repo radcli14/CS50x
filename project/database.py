@@ -2,11 +2,20 @@ import sqlite3
 import os
 import csv
 from flask import g, session
+from supabase import create_client, Client 
 
 # Database file path
 # On Vercel, filesystem is read-only except /tmp
 DATABASE = "/tmp/mealplan.db"
 
+# Testing supabase
+url: str = os.environ.get("MEALPLAN_SUPABASE_URL") or "unknown-url"
+key: str = os.environ.get("MEALPLAN_SUPABASE_KEY") or "unknown-key"
+supabase: Client = create_client(url, key)
+stores = supabase.table("Stores").select("*").execute()
+print("database.py, url:", url)
+print("database.py, key:", key)
+print("stores", stores)
 
 def get_db():
     """
