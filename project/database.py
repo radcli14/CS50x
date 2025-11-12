@@ -1,14 +1,12 @@
 import sqlite3
 import os
 import csv
-from flask import g, session
+from flask import g, session, redirect
 from supabase import create_client, Client 
+from helpers import apology
+from werkzeug.security import check_password_hash, generate_password_hash
 
-# Database file path
-# On Vercel, filesystem is read-only except /tmp
-DATABASE = "/tmp/mealplan.db"
-
-# Testing supabase
+# Supabase environment variables and client
 url: str = os.environ.get("MEALPLAN_SUPABASE_URL") or "unknown-url"
 key: str = os.environ.get("MEALPLAN_SUPABASE_KEY") or "unknown-key"
 supabase: Client = create_client(url, key)
@@ -17,53 +15,48 @@ print("database.py, url:", url)
 print("database.py, key:", key)
 print("stores", stores)
 
-def get_db():
-    """
-    Get database connection.
-    Reuses connection per request using Flask's g object.
-    Also ensures schema is initialized on first access (lazy initialization).
-    """
-    print("get_db")
-    db = getattr(g, '_database', None)
-    if db is None:
-        db = g._database = sqlite3.connect(DATABASE)
-        db.row_factory = sqlite3.Row  # Makes rows accessible by column name
-
-    print(" returning ", db.execute(".schema").fetchall())
-    return db
-
-
 def get_user_data():
     """Get the active user's data"""
-    db = get_db()
-    rows = db.execute("SELECT * FROM users WHERE id = ?", (session["user_id"],)).fetchall()
-    if len(rows) > 0:
-        return dict(rows[0])
-    return None  # Return None if user not found
+    response = supabase.table("Users").select("*").eq("id", session["user_id"]).execute()
+    if response.count > 0:
+        return response.data[0]
 
 
-def close_db(exception):
-    """
-    Close database connection at end of request.
-    This function should be registered with app.teardown_appcontext
-    """
-    db = getattr(g, '_database', None)
-    if db is not None:
-        db.close()
+def register_new_user(request):
+    """Register a new user based of form data in the request"""
+    # Ensure username was submitted, and is not already in use
+    username = request.form.get("username")
+    if not username:
+        return apology("must provide username", 400)
 
+    response = supabase.table("Users").select("*").eq("username", username).execute()
+    print("register checking existing users", response)
+    if response.count is not None:
+        return apology(f"username {username} is already in use")
 
-def init_db(app):
-    """
-    Initialize database connection handling for the Flask app.
-    Registers the teardown handler to close connections.
-    
-    Note: Schema initialization is now lazy - it happens on first database access
-    rather than at import time. This prevents errors in serverless environments.
-    
-    Args:
-        app: Flask application instance
-    """
-    app.teardown_appcontext(close_db)
-    # Schema initialization is now handled lazily in get_db()
-    # This avoids issues with app context during module import
+    # Ensure password was submitted
+    password = request.form.get("password")
+    if not password:
+        return apology("must provide password", 400)
 
+    # Ensure password and confirmation match
+    confirmation = request.form.get("confirmation")
+    if not confirmation:
+        return apology("must provide confirmation", 400)
+    if password != confirmation:
+        return apology("password and confirmation must match")
+
+    # Create a secure hash of the password
+    hash = generate_password_hash(password)
+
+    # Insert this user into the database
+    response = supabase.table("Users").insert({"username": username, "hash": hash}).execute()
+
+    # If it worked, Add this user to the session
+    print("after register, response", response)
+    if response.count is None:
+        return apology("failed to register a new user")
+    session["user_id"] = response.data[0]["id"]
+
+    # Redirect user to home page
+    return redirect("/")

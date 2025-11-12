@@ -6,7 +6,7 @@ from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from helpers import apology, login_required
-from database import get_db, init_db, get_user_data
+from database import get_user_data, register_new_user
 
 app = Flask(__name__)
 
@@ -25,16 +25,6 @@ else:
     # Local development: use filesystem sessions
     app.config["SESSION_TYPE"] = "filesystem"
     Session(app)
-
-# Initialize database (only if not in Vercel's import inspection phase)
-# Delay initialization to avoid issues during module import
-try:
-    init_db(app)
-except Exception as e:
-    # If initialization fails during import (e.g., in Vercel's inspection), 
-    # it will be retried on first request
-    import sys
-    print(f"Warning: Database initialization deferred: {e}", file=sys.stderr)
 
 app.register_blueprint(api_bp)
 
@@ -83,7 +73,7 @@ def change_password():
 @login_required
 def index():
     data=get_user_data()
-    print(data)
+    print("index data", data)
     return render_template("index.html", data=data)
 
 
@@ -160,43 +150,7 @@ def register():
     """Register a new user"""
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
-        # Ensure username was submitted, and is not already in use
-        username = request.form.get("username")
-        if not username:
-            return apology("must provide username", 400)
-        
-        db = get_db()
-        rows = db.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchall()
-        if len(rows) > 0:
-            return apology(f"username {username} is already in use")
-
-        # Ensure password was submitted
-        password = request.form.get("password")
-        if not password:
-            return apology("must provide password", 400)
-
-        # Ensure password and confirmation match
-        confirmation = request.form.get("confirmation")
-        if not confirmation:
-            return apology("must provide confirmation", 400)
-        if password != confirmation:
-            return apology("password and confirmation must match")
-
-        # Create a secure hash of the password
-        hash = generate_password_hash(password)
-
-        # Insert this user into the database
-        db.execute("INSERT INTO users (username, hash) VALUES (?, ?)", (username, hash))
-        db.commit()  # Important: commit the transaction
-
-        # Get the new database entry with this user
-        rows = db.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchall()
-
-        # Add this user to the session
-        session["user_id"] = rows[0]["id"]
-
-        # Redirect user to home page
-        return redirect("/")
+        return register_new_user(request)
 
     # User reached route via GET (as by clicking a link or via redirect)
     else:
