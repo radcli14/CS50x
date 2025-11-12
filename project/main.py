@@ -1,12 +1,11 @@
 import os
 from datetime import datetime
 from endpoints import api_bp
-from flask import Flask, flash, redirect, render_template, request, session
+from flask import Flask, redirect, render_template, request, session
 from flask_session import Session
-from werkzeug.security import check_password_hash, generate_password_hash
 
 from helpers import apology, login_required
-from database import get_stores, get_user_data, login_user, register_new_user
+from database import change_user_password, get_stores, get_user_data, login_user, register_new_user
 
 app = Flask(__name__)
 
@@ -35,35 +34,7 @@ def change_password():
     """Change the user's password"""
 
     if request.method == "POST":
-        # Get current user data, as well as form data
-        data = get_user_data()
-        old_password = request.form.get("old_password")
-        new_password = request.form.get("new_password")
-        confirmation = request.form.get("confirmation")
-
-        # Check that the old password matches the user's current password
-        if not old_password:
-            return apology("Please enter your existing password", 403)
-        if not check_password_hash(data["hash"], old_password):
-            return apology("You entered your existing password incorrectly", 403)
-
-        # Check that a new password was entered
-        if not new_password:
-            return apology("Please enter a new password", 403)
-
-        if confirmation != new_password:
-            return apology("Your confirmation does not match the new password", 403)
-
-        # Create a secure hash of the **new** password
-        hash = generate_password_hash(new_password)
-
-        # Update the user's password in the database
-        db = get_db()
-        db.execute("UPDATE users SET hash = ? WHERE id = ?", (hash, session["user_id"]))
-        db.commit()  # Important: commit the transaction
-
-        # Redirect back to the index
-        return redirect("/")
+        return change_user_password(request)
 
     else:
         return render_template("change_password.html")
@@ -97,7 +68,7 @@ def login():
 @login_required
 def lists():
     """Show the user's lists"""
-    data=get_user_data()
+    data = get_user_data()
     return render_template("lists.html", data=data)
 
 
@@ -116,7 +87,7 @@ def logout():
 @login_required
 def meals():
     """Show the user's meals"""
-    data=get_user_data()
+    data = get_user_data()
     return render_template("meals.html", data=data)
 
 

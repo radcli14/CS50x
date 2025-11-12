@@ -12,6 +12,39 @@ key: str = os.environ.get("MEALPLAN_SUPABASE_KEY") or "unknown-key"
 supabase: Client = create_client(url, key)
 
 
+def change_user_password(request):
+    """Change the user's password in the database"""
+
+    # Get current user data, as well as form data
+    data = get_user_data()
+    old_password = request.form.get("old_password")
+    new_password = request.form.get("new_password")
+    confirmation = request.form.get("confirmation")
+
+    # Check that the old password matches the user's current password
+    if not old_password:
+        return apology("Please enter your existing password", 403)
+    if not check_password_hash(data["hash"], old_password):
+        return apology("You entered your existing password incorrectly", 403)
+
+    # Check that a new password was entered
+    if not new_password:
+        return apology("Please enter a new password", 403)
+
+    if confirmation != new_password:
+        return apology("Your confirmation does not match the new password", 403)
+
+    # Create a secure hash of the **new** password
+    hash = generate_password_hash(new_password)
+
+    # Update the user's password in the database
+    response = supabase.table("Users").update({"hash": hash}).eq("id", session["user_id"]).execute()
+    print("change_user_password, response", response)
+    
+    # Redirect back to the index
+    return redirect("/")
+
+
 def get_stores():
     """Get all of the stores in the database (currently not by user)"""
     response = supabase.table("Stores").select("*").execute()
