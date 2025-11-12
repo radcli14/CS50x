@@ -4,8 +4,12 @@ from endpoints import api_bp
 from flask import Flask, redirect, render_template, request, session
 from flask_session import Session
 
-from helpers import apology, login_required
-from database import change_user_password, get_stores, get_user_data, login_user, register_new_user
+from helpers import login_required
+from database import (
+    change_user_password, 
+    get_stores, get_user_data, get_user_lists, get_user_meals, get_user_trips, 
+    login_user, register_new_user
+    )
 
 app = Flask(__name__)
 
@@ -69,7 +73,9 @@ def login():
 def lists():
     """Show the user's lists"""
     data = get_user_data()
-    return render_template("lists.html", data=data)
+    trips = get_user_trips()
+    items = get_user_lists()
+    return render_template("lists.html", data=data, trips=trips, items=items)
 
 
 @app.route("/logout")
@@ -88,7 +94,8 @@ def logout():
 def meals():
     """Show the user's meals"""
     data = get_user_data()
-    return render_template("meals.html", data=data)
+    meals = get_user_meals()
+    return render_template("meals.html", data=data, meals=meals)
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -101,6 +108,7 @@ def register():
     # User reached route via GET (as by clicking a link or via redirect)
     else:
         return render_template("register.html")
+
 
 @app.route("/stores")
 @login_required

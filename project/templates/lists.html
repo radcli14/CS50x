@@ -8,4 +8,44 @@
 
     <h1>Lists for {{ data.username }}</h1>
 
+    <h3>Trips</h3>
+    <table class="table">
+        <thead>
+            <th>Trip ID</th>
+            <th>Store ID</th>
+            <th>Date</th>
+            <th>Summary</th>
+        </thead>
+        <tbody>
+            {% for trip in trips %}
+                <tr>
+                    <td>{{ trip.id }}</td>
+                    <td>{{ trip.store_id }}</td>
+                    <td>{{ trip.date }}</td>
+                    <td>{{ trip.summary }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>All List Items</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Trip ID</th>
+                <th>Item</th>
+                <th>Quantity</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+                <tr>
+                    <td>{{ item.trip_id }}</td>
+                    <td>{{ item.item_id }}</td>
+                    <td>{{ item.quantity }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
 {% endblock %}

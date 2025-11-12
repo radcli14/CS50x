@@ -40,7 +40,7 @@ def change_user_password(request):
     # Update the user's password in the database
     response = supabase.table("Users").update({"hash": hash}).eq("id", session["user_id"]).execute()
     print("change_user_password, response", response)
-    
+
     # Redirect back to the index
     return redirect("/")
 
@@ -56,6 +56,24 @@ def get_user_data():
     response = supabase.table("Users").select("*").eq("id", session["user_id"]).execute()
     if len(response.data) > 0:
         return response.data[0]
+
+
+def get_user_lists():
+    """Get all of the lists created by the active user"""
+    response = supabase.table("Lists").select("*").execute() # TODO: have to get user items from trips .eq("user_id", session["user_id"])
+    return response.data
+
+
+def get_user_meals():
+    """Get all of the meals created by the active user"""
+    response = supabase.table("Meals").select("*").eq("user_id", session["user_id"]).execute()
+    return response.data
+
+
+def get_user_trips():
+    """Get all of the trips created by the active user"""
+    response = supabase.table("Trips").select("*").eq("user_id", session["user_id"]).execute()
+    return response.data
 
 
 def login_user(request):
