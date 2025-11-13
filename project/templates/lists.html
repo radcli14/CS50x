@@ -28,7 +28,7 @@
                         <h6 class="card-subtitle mb-2 text-body-secondary">{{ trip.address }}</h6>
                         <p class="card-text">{{ trip.summary }}</p>
 
-                        <table class="table">
+                        <table class="table trip-item-table">
                             <thead>
                                 <th></th>
                                 <th>Item</th>
@@ -41,12 +41,21 @@
                                             <button type="button" class="btn btn-outline-success btn-sm check-item-btn">
                                                 &#10003; </button>
                                         </td>
-                                        <td>{{ item.name }}</td>
-                                        <td>{{ item.quantity }}</td>
+                                        <td class="item-name">{{ item.name }}</td>
+                                        <td class="item-quantity">{{ item.quantity }}</td>
                                     </tr>
                                 {% endfor %}
+                                <tr class="new-item-row">
+                                    <td></td> <td><input type="text" class="form-control new-item-name" placeholder="New Item"></td>
+                                    <td><input type="number" class="form-control new-item-quantity" value="1" min="1"></td>
+                                </tr>
                             </tbody>
                         </table>
+                    </div>
+                    <div class="card-footer text-center d-none save-button-container">
+                        <button type="button" class="btn btn-primary save-list-btn" data-trip-id="{{ trip.id }}">
+                            Save Changes
+                        </button>
                     </div>
                 </div>
             {% endfor %}
@@ -120,6 +129,133 @@
                 row.classList.toggle('table-success');
             });
         });
+
+        // === Logic for Adding New Items and Showing Save Button ===
+
+        // Get all new item input fields (there's one per trip card)
+        const newItemInputs = document.querySelectorAll('.new-item-name');
+
+        newItemInputs.forEach(input => {
+            // Get the corresponding save button container for this card
+            const card = input.closest('.card');
+            const saveButtonContainer = card.querySelector('.save-button-container');
+            const tableBody = card.querySelector('.trip-item-table tbody');
+            const quantityInput = card.querySelector('.new-item-quantity');
+
+            // Event listener to show the Save button when the user starts typing
+            input.addEventListener('input', function() {
+                if (this.value.trim().length > 0) {
+                    // Show the save button container
+                    saveButtonContainer.classList.remove('d-none');
+                } else if (tableBody.querySelectorAll('tr').length === 1) {
+                    // Optionally hide if the field is cleared and no items were added
+                    saveButtonContainer.classList.add('d-none');
+                }
+            });
+            
+            // Event listener for adding the item when the Enter key is pressed
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && this.value.trim() !== "") {
+                    e.preventDefault(); // Prevent default form submission behavior
+
+                    const name = this.value.trim();
+                    const quantity = quantityInput.value || 1; // Default to 1
+
+                    // Create the new row
+                    const newRow = document.createElement('tr');
+
+                    // Create and append the cells
+                    const buttonCell = document.createElement('td');
+                    buttonCell.innerHTML = `<button type="button" class="btn btn-outline-success btn-sm check-item-btn">&#10003;</button>`;
+                    newRow.appendChild(buttonCell);
+
+                    const nameCell = document.createElement('td');
+                    nameCell.className = 'item-name';
+                    nameCell.textContent = name;
+                    newRow.appendChild(nameCell);
+
+                    const quantityCell = document.createElement('td');
+                    quantityCell.className = 'item-quantity';
+                    quantityCell.textContent = quantity;
+                    newRow.appendChild(quantityCell);
+
+                    // Re-attach the check-item-btn listener to the new button
+                    const newCheckButton = newRow.querySelector('.check-item-btn');
+                    newCheckButton.addEventListener('click', function() {
+                        this.classList.toggle('btn-outline-success');
+                        this.classList.toggle('btn-success');
+                        const row = this.closest('tr');
+                        row.classList.toggle('text-decoration-line-through');
+                        row.classList.toggle('table-success');
+                    });
+
+                    // Insert the new row *before* the input row
+                    const newItemRow = card.querySelector('.new-item-row');
+                    tableBody.insertBefore(newRow, newItemRow);
+
+                    // Clear the input fields for the next entry
+                    this.value = '';
+                    quantityInput.value = 1;
+                }
+            });
+        });
+
+
+        // === Logic for Save Button Click (API POST preparation) ===
+
+        const saveButtons = document.querySelectorAll('.save-list-btn');
+
+        saveButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const card = this.closest('.card');
+                const tripId = this.getAttribute('data-trip-id');
+                const tableRows = card.querySelectorAll('.trip-item-table tbody tr:not(.new-item-row)');
+                
+                // Build the data structure to send to the API
+                const listData = [];
+                tableRows.forEach(row => {
+                    const nameCell = row.querySelector('.item-name');
+                    const quantityCell = row.querySelector('.item-quantity');
+                    
+                    // Only save the item if its name is present
+                    if (nameCell && nameCell.textContent.trim() !== "") {
+                        listData.push({
+                            name: nameCell.textContent.trim(),
+                            quantity: quantityCell ? parseInt(quantityCell.textContent.trim()) : 1
+                        });
+                    }
+                });
+
+                console.log(`Sending list for Trip ID: ${tripId}`, listData);
+
+                // --- API Call ---
+                fetch('/lists_save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // Include any necessary CSRF tokens here
+                    },
+                    body: JSON.stringify({
+                        trip_id: tripId,
+                        items: listData
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert('List saved successfully!');
+                    // Hide the save button after successful save
+                    card.querySelector('.save-button-container').classList.add('d-none');
+                })
+                .catch(error => {
+                    console.error('Error saving list:', error);
+                    alert(`Failed to save list because ${error.message}`);
+                });
+                
+                // For now, just hide the button after a mock "save"
+                card.querySelector('.save-button-container').classList.add('d-none');
+            });
+        });
+
     </script>
 
 {% endblock %}
