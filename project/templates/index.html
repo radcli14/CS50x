@@ -1,11 +1,63 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Index
+    Dashboard
 {% endblock %}
 
 {% block main %}
 
-    <h1>Dashboard for {{ data.username }}</h1>
+    <div class="container py-5">
+        <h1 class="text-center mb-5 display-4 text-primary">👋 Welcome, {{ data.username }}</h1>
+
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+
+            <div class="col">
+                <a href="/lists" class="text-decoration-none">
+                    <div class="card h-100 shadow-lg border-0 card-hover-effect">
+                        <div class="card-body p-4 text-center">
+                            <i class="fas fa-clipboard-list fa-4x text-info mb-3"></i>
+                            <h2 class="card-title fw-bold text-dark">Lists</h2>
+                            <p class="card-text text-muted">Create and check off items.</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col">
+                <a href="/meals" class="text-decoration-none">
+                    <div class="card h-100 shadow-lg border-0 card-hover-effect">
+                        <div class="card-body p-4 text-center">
+                            <i class="fas fa-utensils fa-4x text-warning mb-3"></i>
+                            <h2 class="card-title fw-bold text-dark">Meals</h2>
+                            <p class="card-text text-muted">Log meals by date, type, and summary.</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col">
+                <a href="/stores" class="text-decoration-none">
+                    <div class="card h-100 shadow-lg border-0 card-hover-effect">
+                        <div class="card-body p-4 text-center">
+                            <i class="fas fa-store fa-4x text-success mb-3"></i>
+                            <h2 class="card-title fw-bold text-dark">Stores</h2>
+                            <p class="card-text text-muted">Track your frequently visited locations.</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Add a subtle hover effect to make the cards feel interactive */
+        .card-hover-effect {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card-hover-effect:hover {
+            transform: translateY(-5px); /* Lift the card slightly */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15) !important; /* Enhance shadow */
+        }
+    </style>
 
 {% endblock %}
