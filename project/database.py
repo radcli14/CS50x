@@ -72,8 +72,21 @@ def get_user_meals():
 
 def get_user_trips():
     """Get all of the trips created by the active user"""
-    response = supabase.table("Trips").select("*").eq("user_id", session["user_id"]).execute()
-    return response.data
+    response = (
+        supabase.from_("Trips")
+            .select("id, user_id, store_id, date, summary, Stores(name, address)")
+            .eq("user_id", session["user_id"])
+            .execute() 
+    )
+    trips = response.data
+
+    # Flatten the table so that store name and address are on the same row as the trip id
+    for trip in trips:
+        for store_key in trip["Stores"].keys():
+            trip[store_key] = trip["Stores"][store_key]
+        trip.pop("Stores");
+
+    return trips
 
 
 def login_user(request):

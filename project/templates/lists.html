@@ -12,16 +12,19 @@
     <table class="table">
         <thead>
             <th>Trip ID</th>
-            <th>Store ID</th>
             <th>Date</th>
+            <th>Store</th>
             <th>Summary</th>
         </thead>
         <tbody>
             {% for trip in trips %}
                 <tr>
                     <td>{{ trip.id }}</td>
-                    <td>{{ trip.store_id }}</td>
                     <td>{{ trip.date }}</td>
+                    <td>
+                        <p>{{ trip.name }}</p>
+                        <p>{{ trip.address }}</p>
+                    </td>
                     <td>{{ trip.summary }}</td>
                 </tr>
             {% endfor %}
