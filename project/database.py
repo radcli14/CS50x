@@ -74,7 +74,7 @@ def get_user_trips():
     """Get all of the trips created by the active user"""
     response = (
         supabase.from_("Trips")
-            .select("id, user_id, store_id, date, summary, Stores(name, address)")
+            .select("id, user_id, store_id, date, summary, Stores(name, address), Lists(id, item_id, quantity, Items(name))")
             .eq("user_id", session["user_id"])
             .execute() 
     )
@@ -85,6 +85,11 @@ def get_user_trips():
         for store_key in trip["Stores"].keys():
             trip[store_key] = trip["Stores"][store_key]
         trip.pop("Stores");
+    
+        # The item is only used to provide an English name, flatten to that one
+        for item in trip["Lists"]:
+            item["name"] = item["Items"]["name"]
+            item.pop("Items");
 
     return trips
 

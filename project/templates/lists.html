@@ -6,49 +6,120 @@
 
 {% block main %}
 
-    <h1>Lists for {{ data.username }}</h1>
+    <div class="d-flex flex-column align-items-center"> <h1>Lists for {{ data.username }}</h1>
 
-    <h3>Trips</h3>
-    <table class="table">
-        <thead>
-            <th>Trip ID</th>
-            <th>Date</th>
-            <th>Store</th>
-            <th>Summary</th>
-        </thead>
-        <tbody>
+        <h3>Trips</h3>
+
+        <div class="btn-toolbar mb-3" role="toolbar" aria-label="Toolbar with button groups">
+            <div class="btn-group me-2" role="group" aria-label="Navigation group">
+                <button type="button" class="btn btn-secondary" id="prev-btn" disabled>Previous</button>
+                <button type="button" class="btn btn-secondary" id="next-btn" disabled>Next</button>
+            </div>
+            <div class="btn-group" role="group" aria-label="New List">
+                <button type="button" class="btn btn-primary">New List</button>
+            </div>
+        </div>
+
+        <div id="trip-cards-container" class="w-100"> 
             {% for trip in trips %}
-                <tr>
-                    <td>{{ trip.id }}</td>
-                    <td>{{ trip.date }}</td>
-                    <td>
-                        <p>{{ trip.name }}</p>
-                        <p>{{ trip.address }}</p>
-                    </td>
-                    <td>{{ trip.summary }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                <div class="card trip-card w-100 mb-3" style="max-width: 600px; margin: 0 auto;">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ trip.date }}, {{ trip.name }}</h5>
+                        <h6 class="card-subtitle mb-2 text-body-secondary">{{ trip.address }}</h6>
+                        <p class="card-text">{{ trip.summary }}</p>
 
-    <h3>All List Items</h3>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Trip ID</th>
-                <th>Item</th>
-                <th>Quantity</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in items %}
-                <tr>
-                    <td>{{ item.trip_id }}</td>
-                    <td>{{ item.item_id }}</td>
-                    <td>{{ item.quantity }}</td>
-                </tr>
+                        <table class="table">
+                            <thead>
+                                <th></th>
+                                <th>Item</th>
+                                <th>Quantity</th>
+                            </thead>
+                            <tbody>
+                                {% for item in trip.Lists %}
+                                    <tr>
+                                        <td>
+                                            <button type="button" class="btn btn-outline-success btn-sm check-item-btn">
+                                                &#10003; </button>
+                                        </td>
+                                        <td>{{ item.name }}</td>
+                                        <td>{{ item.quantity }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             {% endfor %}
-        </tbody>
-    </table>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tripCards = document.querySelectorAll('.trip-card');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            let currentIndex;
+
+            // On load, the most recent (last in the list) "trip" should be visible
+            // The last card in the list corresponds to the highest index.
+            if (tripCards.length > 0) {
+                currentIndex = tripCards.length - 1;
+
+                // Function to show the current card and hide others
+                function updateDisplay() {
+                    tripCards.forEach((card, index) => {
+                        // Hide all cards initially using Bootstrap's d-none class
+                        card.classList.add('d-none');
+                    });
+
+                    // Show the card at the current index
+                    tripCards[currentIndex].classList.remove('d-none');
+
+                    // Update button states
+                    prevBtn.disabled = currentIndex === 0;
+                    nextBtn.disabled = currentIndex === tripCards.length - 1;
+                }
+
+                // Initial display update
+                updateDisplay();
+
+                // On tapping the previous/next buttons should change the index
+                prevBtn.addEventListener('click', () => {
+                    if (currentIndex > 0) {
+                        currentIndex--;
+                        updateDisplay();
+                    }
+                });
+
+                nextBtn.addEventListener('click', () => {
+                    if (currentIndex < tripCards.length - 1) {
+                        currentIndex++;
+                        updateDisplay();
+                    }
+                });
+
+            } else {
+                // If there are no trips, disable navigation buttons
+                prevBtn.disabled = true;
+                nextBtn.disabled = true;
+            }
+        });
+
+        // Add interactivity to the checklist buttons
+        const checkButtons = document.querySelectorAll('.check-item-btn');
+
+        checkButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Toggle the style/state of the button
+                this.classList.toggle('btn-outline-success');
+                this.classList.toggle('btn-success');
+
+                // Find the parent <tr> and visually cross out the row
+                const row = this.closest('tr');
+                row.classList.toggle('text-decoration-line-through');
+                row.classList.toggle('table-success');
+            });
+        });
+    </script>
 
 {% endblock %}

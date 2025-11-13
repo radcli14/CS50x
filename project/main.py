@@ -47,7 +47,7 @@ def change_password():
 @app.route("/")
 @login_required
 def index():
-    data=get_user_data()
+    data = get_user_data()
     print("index data", data)
     return render_template("index.html", data=data)
 
