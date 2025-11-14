@@ -75,7 +75,8 @@ def lists():
     data = get_user_data()
     trips = get_user_trips()
     items = get_user_lists()
-    return render_template("lists.html", data=data, trips=trips, items=items)
+    stores = get_stores()
+    return render_template("lists.html", data=data, trips=trips, items=items, stores=stores)
 
 
 @app.route("/lists_save", methods=["POST"])

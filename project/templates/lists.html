@@ -6,10 +6,12 @@
 
 {% block main %}
 
-    <div class="d-flex flex-column align-items-center"> <h1>Lists for {{ data.username }}</h1>
+    <div class="d-flex flex-column align-items-center"> 
+        <h1>Lists for {{ data.username }}</h1>
 
         <h3>Trips</h3>
 
+        <!-- The button toolbar at the top, with previous, next, and new buttons -->
         <div class="btn-toolbar mb-3" role="toolbar" aria-label="Toolbar with button groups">
             <div class="btn-group me-2" role="group" aria-label="Navigation group">
                 <button type="button" class="btn btn-secondary" id="prev-btn" disabled>Previous</button>
@@ -20,14 +22,42 @@
             </div>
         </div>
 
+        <!-- The trip card, making up the majority of the screen content -->
         <div id="trip-cards-container" class="w-100"> 
             {% for trip in trips %}
-                <div class="card trip-card w-100 mb-3" style="max-width: 600px; margin: 0 auto;">
+                <div class="card trip-card w-100 mb-3 shadow-lg border-0" style="max-width: 600px; margin: 0 auto;">
                     <div class="card-body">
-                        <h5 class="card-title">{{ trip.date }}, {{ trip.name }}</h5>
-                        <h6 class="card-subtitle mb-2 text-body-secondary">{{ trip.address }}</h6>
+
+                        <h5 class="card-title">
+                            <input type="text" value="{{ trip.date }}" class="trip-date-display text-center" readonly style="border: none; background: transparent; font-weight: bold; width: auto;">
+                        </h5>
+
+                        <!-- The dropdown menu to select the store from the list of stores -->
+                        <div class="store-data d-none">{{ stores | tojson }}</div>
+
+                        <select class="form-select mb-2 d-inline store-name-select" data-original-name="{{ trip.name }}" style="max-width: 200px; width: auto;">
+                            <option value="" disabled>Select a Store</option>
+                            
+                            {% for store in stores %}
+                                <option value="{{ store.name }}" 
+                                        data-store-id="{{ store.id }}" 
+                                        data-address="{{ store.address }}"
+                                        {% if store.name == trip.name %}selected{% endif %}>
+                                    {{ store.name }}
+                                </option>
+                            {% endfor %}
+
+                            {% if trip.name not in stores | map(attribute='name') | list %}
+                                <option value="{{ trip.name }}" selected>{{ trip.name }} (Unlisted)</option>
+                            {% endif %}
+                        </select>
+
+                        <h6 class="card-subtitle mb-2 text-muted fw-light current-trip-address">{{ trip.address }}</h6>
+                        
+                        <!-- Summary of the trip -->
                         <p class="card-text">{{ trip.summary }}</p>
 
+                        <!-- The list of all items on the shopping list -->
                         <table class="table trip-item-table">
                             <thead>
                                 <th></th>
@@ -36,7 +66,7 @@
                             </thead>
                             <tbody>
                                 {% for item in trip.Lists %}
-                                    <tr>
+                                    <tr data-item-id="{{ item.id }}">
                                         <td>
                                             <button type="button" class="btn btn-outline-success btn-sm check-item-btn">
                                                 &#10003; </button>
@@ -45,6 +75,8 @@
                                         <td class="item-quantity">{{ item.quantity }}</td>
                                     </tr>
                                 {% endfor %}
+
+                                <!-- A row at the bottom that lets the user enter a new item -->
                                 <tr class="new-item-row">
                                     <td></td> <td><input type="text" class="form-control new-item-name" placeholder="New Item"></td>
                                     <td><input type="number" class="form-control new-item-quantity" value="1" min="1"></td>
@@ -52,6 +84,8 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- A save button that is visible if data has been modified -->
                     <div class="card-footer text-center d-none save-button-container">
                         <button type="button" class="btn btn-primary save-list-btn" data-trip-id="{{ trip.id }}">
                             Save Changes
@@ -70,7 +104,7 @@
             let currentIndex;
 
             // On load, the most recent (last in the list) "trip" should be visible
-            // The last card in the list corresponds to the highest index.
+            // The most recent card in the list corresponds to the highest index.
             if (tripCards.length > 0) {
                 currentIndex = tripCards.length - 1;
 
@@ -112,6 +146,26 @@
                 prevBtn.disabled = true;
                 nextBtn.disabled = true;
             }
+
+            // === Logic for Store Dropdown Selection ===
+
+            const storeNameSelects = document.querySelectorAll('.store-name-select');
+
+            storeNameSelects.forEach(select => {
+                select.addEventListener('change', function() {
+                    const card = this.closest('.card');
+                    const selectedOption = this.options[this.selectedIndex];
+                    
+                    // 1. Update Address
+                    const newAddress = selectedOption.getAttribute('data-address');
+                    const addressElement = card.querySelector('.current-trip-address');
+                    addressElement.textContent = newAddress;
+                    
+                    // 2. Show Save Button
+                    const saveButtonContainer = card.querySelector('.save-button-container');
+                    saveButtonContainer.classList.remove('d-none');
+                });
+            });
         });
 
         // Add interactivity to the checklist buttons
@@ -209,17 +263,30 @@
             button.addEventListener('click', function() {
                 const card = this.closest('.card');
                 const tripId = this.getAttribute('data-trip-id');
+
+                const dateInput = card.querySelector('.trip-date-display');
                 const tableRows = card.querySelectorAll('.trip-item-table tbody tr:not(.new-item-row)');
                 
+                // Capture current store data
+                const storeSelect = card.querySelector('.store-name-select');
+                const tripName = storeSelect.value;
+                const tripAddress = card.querySelector('.current-trip-address').textContent.trim();
+                
+                // Get the selected option element
+                const selectedOption = storeSelect.options[storeSelect.selectedIndex];
+                const storeId = selectedOption ? selectedOption.getAttribute('data-store-id') : null; // Capture the Store ID
+
                 // Build the data structure to send to the API
                 const listData = [];
                 tableRows.forEach(row => {
+                    const itemId = row.getAttribute('data-item-id');
                     const nameCell = row.querySelector('.item-name');
                     const quantityCell = row.querySelector('.item-quantity');
                     
                     // Only save the item if its name is present
                     if (nameCell && nameCell.textContent.trim() !== "") {
                         listData.push({
+                            id: itemId,
                             name: nameCell.textContent.trim(),
                             quantity: quantityCell ? parseInt(quantityCell.textContent.trim()) : 1
                         });
@@ -237,7 +304,11 @@
                     },
                     body: JSON.stringify({
                         trip_id: tripId,
-                        items: listData
+                        store_id: storeId,
+                        date: dateInput.value,
+                        store_name: tripName,
+                        store_address: tripAddress,
+                        items: listData,
                     })
                 })
                 .then(response => response.json())
