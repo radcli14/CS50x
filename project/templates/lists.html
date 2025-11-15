@@ -11,8 +11,6 @@
     <div class="d-flex flex-column align-items-center"> 
         <h1>Lists for {{ data.username }}</h1>
 
-        <h3>Trips</h3>
-
         <!-- The button toolbar at the top, with previous, next, new, and save buttons -->
         <div class="btn-toolbar mb-3" role="toolbar" aria-label="Toolbar with button groups">
             <div class="btn-group me-2" role="group" aria-label="Navigation group">
@@ -29,7 +27,7 @@
 
         <!-- The trip card, making up the majority of the screen content -->
         <div id="trip-cards-container" class="w-100"> 
-            {% for trip in trips %}
+            {% for trip in trips | sort(attribute='id') %}
                 <div class="card trip-card w-100 mb-3 shadow-lg border-0" data-trip-id="{{ trip.id }}" style="max-width: 600px; margin: 0 auto;">
                     <div class="card-body">
 
