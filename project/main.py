@@ -8,7 +8,7 @@ from helpers import login_required
 from database import (
     change_user_password, 
     get_stores, get_user_data, get_user_lists, get_user_meals, get_user_trips, 
-    login_user, register_new_user, update_list
+    login_user, register_new_user, update_list, create_blank_trip
     )
 
 app = Flask(__name__)
@@ -103,6 +103,18 @@ def lists_save():
         return jsonify({"error": "Failed to update list"}), 400
 
     return jsonify({"message": "Save processed"}), 200
+
+
+@app.route("/lists_new", methods=["POST"])
+@login_required
+def lists_new():
+    """Create a new blank trip for the user"""
+    try:
+        trip_data = create_blank_trip()
+        return jsonify({"trip_id": trip_data["id"]}), 201
+    except Exception as e:
+        print("Error creating blank trip:", e)
+        return jsonify({"error": "Failed to create new trip"}), 400
 
 
 @app.route("/logout")

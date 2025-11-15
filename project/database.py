@@ -83,14 +83,20 @@ def get_user_trips():
 
     # Flatten the table so that store name and address are on the same row as the trip id
     for trip in trips:
-        for store_key in trip["Stores"].keys():
-            trip[store_key] = trip["Stores"][store_key]
-        trip.pop("Stores");
+        if trip["Stores"] is not None:
+            for store_key in trip["Stores"].keys():
+                trip[store_key] = trip["Stores"][store_key]
+            trip.pop("Stores")
+        else:
+            # If no store is associated with this trip yet, set defaults
+            trip["name"] = None
+            trip["address"] = None
     
         # The item is only used to provide an English name, flatten to that one
-        for item in trip["Lists"]:
-            item["name"] = item["Items"]["name"]
-            item.pop("Items");
+        if trip["Lists"]:
+            for item in trip["Lists"]:
+                item["name"] = item["Items"]["name"]
+                item.pop("Items")
 
     return trips
 
@@ -358,6 +364,25 @@ def login_user(request):
 
     # Redirect user to home page
     return redirect("/")
+
+
+def create_blank_trip():
+    """Create a new blank trip for the user with today's date"""
+    from datetime import date
+    
+    today = str(date.today())
+    
+    # Create a new trip with minimal data
+    response = supabase.table("Trips").insert({
+        "user_id": session["user_id"],
+        "date": today,
+        "summary": ""
+    }).execute()
+    
+    if response.data and len(response.data) > 0:
+        return response.data[0]
+    else:
+        raise Exception("Failed to create new trip")
 
 
 def register_new_user(request):

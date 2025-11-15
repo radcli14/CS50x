@@ -2,7 +2,35 @@ document.addEventListener('DOMContentLoaded', function() {
     const tripCards = document.querySelectorAll('.trip-card');
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
+    const newListBtn = document.querySelector('.btn-primary'); // "New List" button
     let currentIndex;
+
+    // === Logic for New List Button ===
+    if (newListBtn) {
+        newListBtn.addEventListener('click', async function() {
+            try {
+                const response = await fetch('/lists_new', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    alert('Failed to create new list: ' + (error.error || 'Unknown error'));
+                    return;
+                }
+
+                const data = await response.json();
+                // Reload the page to show the new trip
+                window.location.reload();
+            } catch (error) {
+                console.error('Error creating new list:', error);
+                alert('Failed to create new list: ' + error.message);
+            }
+        });
+    }
 
     // On load, the most recent (last in the list) "trip" should be visible
     // The most recent card in the list corresponds to the highest index.
