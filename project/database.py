@@ -52,6 +52,40 @@ def get_stores():
     return response.data
 
 
+def update_stores(data):
+    """Upsert stores data received from the frontend."""
+    if not data or not isinstance(data, dict):
+        print("update_stores: invalid data payload")
+        return None
+
+    stores = data.get("stores") or []
+
+    for store in stores:
+        store_id = store.get("id")
+        name = store.get("name")
+        address = store.get("address")
+
+        try:
+            if store_id:
+                # Update existing store
+                resp = supabase.table("Stores").update({
+                    "name": name,
+                    "address": address
+                }).eq("id", store_id).execute()
+                print("update_stores: updated store", store_id, resp)
+            else:
+                # Insert new store
+                resp = supabase.table("Stores").insert({
+                    "name": name,
+                    "address": address
+                }).execute()
+                print("update_stores: created store", resp)
+        except Exception as e:
+            print(f"update_stores: error processing store {store_id}", e)
+
+    return {"status": "ok"}
+
+
 def get_user_data():
     """Get the active user's data"""
     response = supabase.table("Users").select("*").eq("id", session["user_id"]).execute()
@@ -69,6 +103,45 @@ def get_user_meals():
     """Get all of the meals created by the active user"""
     response = supabase.table("Meals").select("*").eq("user_id", session["user_id"]).execute()
     return response.data
+
+
+def update_meals(data):
+    """Upsert meals data received from the frontend."""
+    if not data or not isinstance(data, dict):
+        print("update_meals: invalid data payload")
+        return None
+
+    meals = data.get("meals") or []
+    user_id = session.get("user_id")
+
+    for meal in meals:
+        meal_id = meal.get("id")
+        date = meal.get("date")
+        meal_type = meal.get("type")
+        summary = meal.get("summary")
+
+        try:
+            if meal_id:
+                # Update existing meal
+                resp = supabase.table("Meals").update({
+                    "date": date,
+                    "type": meal_type,
+                    "summary": summary
+                }).eq("id", meal_id).execute()
+                print("update_meals: updated meal", meal_id, resp)
+            else:
+                # Insert new meal
+                resp = supabase.table("Meals").insert({
+                    "user_id": user_id,
+                    "date": date,
+                    "type": meal_type,
+                    "summary": summary
+                }).execute()
+                print("update_meals: created meal", resp)
+        except Exception as e:
+            print(f"update_meals: error processing meal {meal_id}", e)
+
+    return {"status": "ok"}
 
 
 def get_user_trips():

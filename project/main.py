@@ -8,7 +8,7 @@ from helpers import login_required
 from database import (
     change_user_password, 
     get_stores, get_user_data, get_user_lists, get_user_meals, get_user_trips, 
-    login_user, register_new_user, update_list, create_blank_trip
+    login_user, register_new_user, update_list, create_blank_trip, update_meals, update_stores
     )
 
 app = Flask(__name__)
@@ -137,6 +137,32 @@ def meals():
     return render_template("meals.html", data=data, meals=meals)
 
 
+@app.route("/meals_save", methods=["POST"])
+@login_required
+def meals_save():
+    """Callback to user tapping the save button on the meals page"""
+    # Access the JSON payload
+    data = request.get_json()
+
+    # Check if data was successfully parsed
+    if not data:
+        # Return an error if no JSON data was found
+        print("Error: No JSON data received.")
+        return jsonify({"error": "Missing JSON data in request"}), 400
+
+    print("meals_save", data)
+
+    # Persist the incoming meals data
+    try:
+        resp = update_meals(data)
+        print("update_meals response:", resp)
+    except Exception as e:
+        print("update_meals error:", e)
+        return jsonify({"error": "Failed to update meals"}), 400
+
+    return jsonify({"message": "Save processed"}), 200
+
+
 @app.route("/register", methods=["GET", "POST"])
 def register():
     """Register a new user"""
@@ -156,3 +182,30 @@ def stores():
     data = get_user_data()
     stores = get_stores()
     return render_template("stores.html", data=data, stores=stores)
+
+
+@app.route("/stores_save", methods=["POST"])
+@login_required
+def stores_save():
+    """Callback to user tapping the save button on the stores page"""
+    # Access the JSON payload
+    data = request.get_json()
+
+    # Check if data was successfully parsed
+    if not data:
+        # Return an error if no JSON data was found
+        print("Error: No JSON data received.")
+        return jsonify({"error": "Missing JSON data in request"}), 400
+
+    print("stores_save", data)
+
+    # Persist the incoming stores data
+    try:
+        resp = update_stores(data)
+        print("update_stores response:", resp)
+    except Exception as e:
+        print("update_stores error:", e)
+        return jsonify({"error": "Failed to update stores"}), 400
+
+    return jsonify({"message": "Save processed"}), 200
+

@@ -8,23 +8,67 @@
 
 {% block main %}
 
-    <h1>Stores for {{ data.username }}</h1>
+    <div class="d-flex flex-column align-items-center">
+        <h1>Stores for {{ data.username }}</h1>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Address</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for store in stores %}
-                <tr>
-                    <td>{{ store.name }}</td>
-                    <td>{{ store.address }}</td>
+        <!-- The button toolbar at the top with new and save buttons -->
+        <div class="btn-toolbar mb-3" role="toolbar" aria-label="Toolbar with button groups">
+            <div class="btn-group me-2" role="group" aria-label="New Store">
+                <button type="button" class="btn btn-primary" id="new-store-btn"><i class="bi bi-plus-lg"></i> New</button>
+            </div>
+            <div class="btn-group" role="group" aria-label="Save">
+                <button type="button" class="btn btn-success" id="save-stores-btn"><i class="bi bi-floppy"></i> Save</button>
+            </div>
+        </div>
+
+        <!-- Container for store card -->
+        <div id="stores-container" class="w-100" style="max-width: 600px;">
+            <div class="card stores-card w-100 shadow-lg border-0">
+                <div class="card-body">
+                    <table class="table table-borderless mb-0">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Address</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="stores-tbody">
+                            {% for store in stores %}
+                                <tr class="store-row" data-store-id="{{ store.id }}">
+                                    <td>
+                                        <input type="text" class="form-control form-control-sm store-name" value="{{ store.name }}" data-store-id="{{ store.id }}">
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control form-control-sm store-address" value="{{ store.address }}" data-store-id="{{ store.id }}">
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-outline-danger delete-store-btn" data-store-id="{{ store.id }}">✕</button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- New store row (hidden by default) -->
+            <div id="new-store-row-template" class="d-none">
+                <tr class="new-store-row">
+                    <td>
+                        <input type="text" class="form-control form-control-sm new-store-name" placeholder="Store Name">
+                    </td>
+                    <td>
+                        <input type="text" class="form-control form-control-sm new-store-address" placeholder="Address">
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-secondary cancel-new-store-btn">Cancel</button>
+                    </td>
                 </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='stores.js') }}"></script>
 
 {% endblock %}
