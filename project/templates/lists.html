@@ -63,23 +63,32 @@
                                 <th></th>
                                 <th>Item</th>
                                 <th>Quantity</th>
+                                <th></th>
                             </thead>
                             <tbody>
                                 {% for item in trip.Lists %}
                                     <tr data-item-id="{{ item.id }}">
                                         <td>
-                                            <button type="button" class="btn btn-outline-success btn-sm check-item-btn">
-                                                &#10003; </button>
+                                            <button type="button" class="btn btn-outline-success btn-sm check-item-btn">&#10003;</button>
                                         </td>
-                                        <td class="item-name">{{ item.name }}</td>
-                                        <td class="item-quantity">{{ item.quantity }}</td>
+                                        <td>
+                                            <input type="text" class="form-control item-name-input" value="{{ item.name }}">
+                                        </td>
+                                        <td>
+                                            <input type="number" class="form-control item-quantity-input" value="{{ item.quantity }}" min="1">
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-outline-danger btn-sm delete-item-btn">&times;</button>
+                                        </td>
                                     </tr>
                                 {% endfor %}
 
                                 <!-- A row at the bottom that lets the user enter a new item -->
                                 <tr class="new-item-row">
-                                    <td></td> <td><input type="text" class="form-control new-item-name" placeholder="New Item"></td>
+                                    <td></td>
+                                    <td><input type="text" class="form-control new-item-name" placeholder="New Item"></td>
                                     <td><input type="number" class="form-control new-item-quantity" value="1" min="1"></td>
+                                    <td></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -183,10 +192,8 @@
                 });
         });
 
-        // Add interactivity to the checklist buttons
-        const checkButtons = document.querySelectorAll('.check-item-btn');
-
-        checkButtons.forEach(button => {
+        // Add interactivity to the checklist buttons and item controls
+        function attachCheckHandler(button) {
             button.addEventListener('click', function() {
                 // Toggle the style/state of the button
                 this.classList.toggle('btn-outline-success');
@@ -196,82 +203,128 @@
                 const row = this.closest('tr');
                 row.classList.toggle('text-decoration-line-through');
                 row.classList.toggle('table-success');
+                // Show save when toggled
+                const card = this.closest('.card');
+                card.querySelector('.save-button-container').classList.remove('d-none');
             });
-        });
+        }
+
+        function attachDeleteHandler(button) {
+            button.addEventListener('click', function() {
+                const row = this.closest('tr');
+                const card = this.closest('.card');
+                row.remove();
+                card.querySelector('.save-button-container').classList.remove('d-none');
+            });
+        }
+
+        function attachItemInputHandlers(input) {
+            input.addEventListener('input', function() {
+                const card = this.closest('.card');
+                card.querySelector('.save-button-container').classList.remove('d-none');
+            });
+        }
+
+        // Attach handlers for existing controls on page load
+        document.querySelectorAll('.check-item-btn').forEach(attachCheckHandler);
+        document.querySelectorAll('.delete-item-btn').forEach(attachDeleteHandler);
+        document.querySelectorAll('.item-name-input').forEach(attachItemInputHandlers);
+        document.querySelectorAll('.item-quantity-input').forEach(attachItemInputHandlers);
 
         // === Logic for Adding New Items and Showing Save Button ===
-
-        // Get all new item input fields (there's one per trip card)
         const newItemInputs = document.querySelectorAll('.new-item-name');
 
         newItemInputs.forEach(input => {
-            // Get the corresponding save button container for this card
             const card = input.closest('.card');
             const saveButtonContainer = card.querySelector('.save-button-container');
             const tableBody = card.querySelector('.trip-item-table tbody');
             const quantityInput = card.querySelector('.new-item-quantity');
 
-            // Event listener to show the Save button when the user starts typing
+            function addNewItem(name, quantity) {
+                const newRow = document.createElement('tr');
+                // leave data-item-id empty for new items (to be assigned by backend)
+
+                const buttonCell = document.createElement('td');
+                buttonCell.innerHTML = `<button type="button" class="btn btn-outline-success btn-sm check-item-btn">&#10003;</button>`;
+                newRow.appendChild(buttonCell);
+
+                const nameCell = document.createElement('td');
+                const nameInput = document.createElement('input');
+                nameInput.type = 'text';
+                nameInput.className = 'form-control item-name-input';
+                nameInput.value = name;
+                nameCell.appendChild(nameInput);
+                newRow.appendChild(nameCell);
+
+                const quantityCell = document.createElement('td');
+                const qtyInput = document.createElement('input');
+                qtyInput.type = 'number';
+                qtyInput.className = 'form-control item-quantity-input';
+                qtyInput.value = quantity;
+                qtyInput.min = 1;
+                quantityCell.appendChild(qtyInput);
+                newRow.appendChild(quantityCell);
+
+                const deleteCell = document.createElement('td');
+                const delButton = document.createElement('button');
+                delButton.type = 'button';
+                delButton.className = 'btn btn-outline-danger btn-sm delete-item-btn';
+                delButton.innerHTML = '&times;';
+                deleteCell.appendChild(delButton);
+                newRow.appendChild(deleteCell);
+
+                // Insert before the new-item-row
+                const newItemRow = card.querySelector('.new-item-row');
+                tableBody.insertBefore(newRow, newItemRow);
+
+                // Attach handlers
+                attachCheckHandler(newRow.querySelector('.check-item-btn'));
+                attachDeleteHandler(newRow.querySelector('.delete-item-btn'));
+                attachItemInputHandlers(nameInput);
+                attachItemInputHandlers(qtyInput);
+
+                // Show save
+                saveButtonContainer.classList.remove('d-none');
+            }
+
+            // show save when typing in the new item input
             input.addEventListener('input', function() {
                 if (this.value.trim().length > 0) {
-                    // Show the save button container
                     saveButtonContainer.classList.remove('d-none');
                 } else if (tableBody.querySelectorAll('tr').length === 1) {
-                    // Optionally hide if the field is cleared and no items were added
                     saveButtonContainer.classList.add('d-none');
                 }
             });
-            
-            // Event listener for adding the item when the Enter key is pressed
+
+            // Enter key adds the item
             input.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter' && this.value.trim() !== "") {
-                    e.preventDefault(); // Prevent default form submission behavior
-
-                    const name = this.value.trim();
-                    const quantity = quantityInput.value || 1; // Default to 1
-
-                    // Create the new row
-                    const newRow = document.createElement('tr');
-
-                    // Create and append the cells
-                    const buttonCell = document.createElement('td');
-                    buttonCell.innerHTML = `<button type="button" class="btn btn-outline-success btn-sm check-item-btn">&#10003;</button>`;
-                    newRow.appendChild(buttonCell);
-
-                    const nameCell = document.createElement('td');
-                    nameCell.className = 'item-name';
-                    nameCell.textContent = name;
-                    newRow.appendChild(nameCell);
-
-                    const quantityCell = document.createElement('td');
-                    quantityCell.className = 'item-quantity';
-                    quantityCell.textContent = quantity;
-                    newRow.appendChild(quantityCell);
-
-                    // Re-attach the check-item-btn listener to the new button
-                    const newCheckButton = newRow.querySelector('.check-item-btn');
-                    newCheckButton.addEventListener('click', function() {
-                        this.classList.toggle('btn-outline-success');
-                        this.classList.toggle('btn-success');
-                        const row = this.closest('tr');
-                        row.classList.toggle('text-decoration-line-through');
-                        row.classList.toggle('table-success');
-                    });
-
-                    // Insert the new row *before* the input row
-                    const newItemRow = card.querySelector('.new-item-row');
-                    tableBody.insertBefore(newRow, newItemRow);
-
-                    // Clear the input fields for the next entry
+                    e.preventDefault();
+                    addNewItem(this.value.trim(), quantityInput.value || 1);
                     this.value = '';
                     quantityInput.value = 1;
+                }
+            });
+
+            // Blur should also add the item (mobile tapping outside)
+            input.addEventListener('blur', function(e) {
+                const val = this.value.trim();
+                if (val !== "") {
+                    // Delay slightly to allow potential Enter handler to run first
+                    setTimeout(() => {
+                        // If value still present (not cleared by enter handler), add it
+                        if (this.value.trim() === val) {
+                            addNewItem(val, quantityInput.value || 1);
+                            this.value = '';
+                            quantityInput.value = 1;
+                        }
+                    }, 50);
                 }
             });
         });
 
 
         // === Logic for Save Button Click (API POST preparation) ===
-
         const saveButtons = document.querySelectorAll('.save-list-btn');
 
         saveButtons.forEach(button => {
@@ -296,15 +349,17 @@
                 const listData = [];
                 tableRows.forEach(row => {
                     const itemId = row.getAttribute('data-item-id');
-                    const nameCell = row.querySelector('.item-name');
-                    const quantityCell = row.querySelector('.item-quantity');
-                    
+                    const nameInput = row.querySelector('.item-name-input');
+                    const qtyInput = row.querySelector('.item-quantity-input');
+                    const nameVal = nameInput ? nameInput.value.trim() : '';
+                    const qtyVal = qtyInput ? parseInt(qtyInput.value) || 1 : 1;
+
                     // Only save the item if its name is present
-                    if (nameCell && nameCell.textContent.trim() !== "") {
+                    if (nameVal !== "") {
                         listData.push({
                             id: itemId,
-                            name: nameCell.textContent.trim(),
-                            quantity: quantityCell ? parseInt(quantityCell.textContent.trim()) : 1
+                            name: nameVal,
+                            quantity: qtyVal
                         });
                     }
                 });
@@ -338,9 +393,6 @@
                     console.error('Error saving list:', error);
                     alert(`Failed to save list because ${error.message}`);
                 });
-                
-                // For now, just hide the button after a mock "save"
-                card.querySelector('.save-button-container').classList.add('d-none');
             });
         });
 
