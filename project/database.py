@@ -127,49 +127,31 @@ def update_list(data):
     if not store_id and store_name:
         store_id = update_store(store_name, store_address)
 
-    # Update the trip row if trip_id provided
-    """
-    list_id = None
-    if trip_id is not None:
-        try:
-            # Update trip fields (partial update)
-            update_payload = {}
-            if summary is not None:
-                update_payload["summary"] = summary
-            if date is not None:
-                update_payload["date"] = date
-            if store_id is not None:
-                update_payload["store_id"] = store_id
+    # Update the header date, including date, store id, and summary
+    trip_update = {}
+    if date is not None:
+        trip_update["date"] = date
+    if store_id is not None:
+        trip_update["store_id"] = store_id
+    if summary is not None:
+        trip_update["summary"] = summary
 
-            if update_payload:
-                resp = supabase.table("Trips").update(update_payload).eq("id", trip_id).execute()
+    try:
+        if trip_id:
+            # Update existing trip row
+            if trip_update:
+                resp = supabase.table("Trips").update(trip_update).eq("id", trip_id).execute()
                 print("update_list: updated trip", resp)
-
-            # Fetch list_id for this trip (if present) to use for list inserts
-            resp = supabase.table("Trips").select("list_id").eq("id", trip_id).limit(1).execute()
-            if resp and getattr(resp, "data", None):
-                row = resp.data[0]
-                list_id = row.get("list_id")
-        except Exception as e:
-            print("update_list: trip update/fetch error", e)
-    else:
-        # No trip_id: try to create a trip for the user (best-effort)
-        try:
-            ins = {"user_id": user_id}
-            if store_id is not None:
-                ins["store_id"] = store_id
-            if date is not None:
-                ins["date"] = date
-            if summary is not None:
-                ins["summary"] = summary
-            created = supabase.table("Trips").insert(ins).execute()
+        else:
+            # Create a new trip record and capture its id
+            create_payload = {"user_id": user_id}
+            create_payload.update(trip_update)
+            created = supabase.table("Trips").insert(create_payload).execute()
             print("update_list: created trip", created)
             if created and getattr(created, "data", None) and len(created.data) > 0:
                 trip_id = created.data[0].get("id")
-                list_id = created.data[0].get("list_id")
-        except Exception as e:
-            print("update_list: trip create error", e)
-    """
+    except Exception as e:
+        print("update_list: error updating/creating trip", e)
 
     # Handle items: update existing entries when possible, insert new ones otherwise
     for item in items:
