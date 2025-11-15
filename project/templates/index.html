@@ -4,6 +4,8 @@
     Dashboard
 {% endblock %}
 
+{% block body_class %}bg-index{% endblock %}
+
 {% block main %}
 
     <div class="container py-5">
@@ -12,7 +14,7 @@
         <div class="row row-cols-1 row-cols-md-3 g-4">
 
             <div class="col">
-                <a href="/lists" class="text-decoration-none">
+                <a href="/lists" class="text-decoration-none index-link lists-link">
                     <div class="card h-100 shadow-lg border-0 card-hover-effect">
                         <div class="card-body p-4 text-center">
                             <i class="fas fa-clipboard-list fa-4x text-info mb-3"></i>
@@ -24,7 +26,7 @@
             </div>
 
             <div class="col">
-                <a href="/meals" class="text-decoration-none">
+                <a href="/meals" class="text-decoration-none index-link meals-link">
                     <div class="card h-100 shadow-lg border-0 card-hover-effect">
                         <div class="card-body p-4 text-center">
                             <i class="fas fa-utensils fa-4x text-warning mb-3"></i>
@@ -36,7 +38,7 @@
             </div>
 
             <div class="col">
-                <a href="/stores" class="text-decoration-none">
+                <a href="/stores" class="text-decoration-none index-link stores-link">
                     <div class="card h-100 shadow-lg border-0 card-hover-effect">
                         <div class="card-body p-4 text-center">
                             <i class="fas fa-store fa-4x text-success mb-3"></i>

@@ -21,3 +21,41 @@ nav .navbar-brand .green
 {
     color: #2e944b;
 }
+
+/* Sticky navbar and colors */
+#main-navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1030; /* above page content */
+    background-color: #0b5fa5; /* marine blue shade */
+}
+
+#main-navbar .navbar-brand,
+#main-navbar .nav-link {
+    color: #ffffff !important;
+}
+
+/* Page background classes */
+.bg-index {
+    background-image: linear-gradient(135deg, #2b2b2b 0%, #1f1f1f 100%); /* dark gray gradient */
+    color: #ffffff;
+}
+.bg-lists {
+    background-image: linear-gradient(135deg, #fff1f1 0%, #ffd6d6 100%); /* light red gradient (ikurrina red, lightened) */
+}
+.bg-meals {
+    background-image: linear-gradient(135deg, #ffffff 0%, #f2f2f2 100%); /* light gray gradient */
+}
+.bg-stores {
+    background-image: linear-gradient(135deg, #f8fff8 0%, #e6f7e9 100%); /* light green gradient (ikurrina green, lightened) */
+}
+
+/* Index card link variants */
+.index-link.lists-link .card-body { background-image: linear-gradient(135deg, #fff1f1 0%, #ffd6d6 100%); }
+.index-link.meals-link .card-body { background-image: linear-gradient(135deg, #ffffff 0%, #f2f2f2 100%); }
+.index-link.stores-link .card-body { background-image: linear-gradient(135deg, #f8fff8 0%, #e6f7e9 100%); }
+
+/* Ensure card text stands out on colored backgrounds */
+.index-link .card-body h2, .index-link .card-body p {
+    color: #111 !important;
+}
