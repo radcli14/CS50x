@@ -54,8 +54,8 @@
 
                         <h6 class="card-subtitle mb-2 text-muted fw-light current-trip-address">{{ trip.address }}</h6>
                         
-                        <!-- Summary of the trip -->
-                        <p class="card-text">{{ trip.summary }}</p>
+                        <!-- Summary of the trip (editable) -->
+                        <textarea class="form-control trip-summary-input mb-2 text-center">{{ trip.summary }}</textarea>
 
                         <!-- The list of all items on the shopping list -->
                         <table class="table trip-item-table">
@@ -166,6 +166,21 @@
                     saveButtonContainer.classList.remove('d-none');
                 });
             });
+
+                // === Make summary editable and show Save button on change ===
+                const summaryInputs = document.querySelectorAll('.trip-summary-input');
+                summaryInputs.forEach(input => {
+                    input.addEventListener('input', function() {
+                        const card = this.closest('.card');
+                        const saveButtonContainer = card.querySelector('.save-button-container');
+                        if (this.value.trim().length > 0) {
+                            saveButtonContainer.classList.remove('d-none');
+                        } else {
+                            // If summary cleared and no other changes, keep save visible so user can intentionally clear summary
+                            saveButtonContainer.classList.remove('d-none');
+                        }
+                    });
+                });
         });
 
         // Add interactivity to the checklist buttons
@@ -267,11 +282,12 @@
                 const dateInput = card.querySelector('.trip-date-display');
                 const tableRows = card.querySelectorAll('.trip-item-table tbody tr:not(.new-item-row)');
                 
-                // Capture current store data
+                // Capture current store and trip data
                 const storeSelect = card.querySelector('.store-name-select');
                 const tripName = storeSelect.value;
                 const tripAddress = card.querySelector('.current-trip-address').textContent.trim();
-                
+                const tripSummary = card.querySelector('.trip-summary-input').value.trim();
+
                 // Get the selected option element
                 const selectedOption = storeSelect.options[storeSelect.selectedIndex];
                 const storeId = selectedOption ? selectedOption.getAttribute('data-store-id') : null; // Capture the Store ID
@@ -304,6 +320,7 @@
                     },
                     body: JSON.stringify({
                         trip_id: tripId,
+                        summary: tripSummary,
                         store_id: storeId,
                         date: dateInput.value,
                         store_name: tripName,
