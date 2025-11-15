@@ -46,6 +46,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Show the card at the current index
             tripCards[currentIndex].classList.remove('d-none');
+            
+            // Update the top save button's trip_id to match the current card
+            const topSaveBtn = document.getElementById('top-save-btn');
+            if (topSaveBtn) {
+                const currentCard = tripCards[currentIndex];
+                const tripId = currentCard.getAttribute('data-trip-id') || '';
+                topSaveBtn.setAttribute('data-trip-id', tripId);
+            }
 
             // Update button states
             prevBtn.disabled = currentIndex === 0;
@@ -82,32 +90,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     storeNameSelects.forEach(select => {
         select.addEventListener('change', function() {
-            const card = this.closest('.card');
             const selectedOption = this.options[this.selectedIndex];
 
             // 1. Update Address
             const newAddress = selectedOption.getAttribute('data-address');
-            const addressElement = card.querySelector('.current-trip-address');
+            const addressElement = this.closest('.card').querySelector('.current-trip-address');
             addressElement.textContent = newAddress;
-
-            // 2. Show Save Button
-            const saveButtonContainer = card.querySelector('.save-button-container');
-            saveButtonContainer.classList.remove('d-none');
         });
     });
 
-        // === Make summary editable and show Save button on change ===
+        // === Make summary editable ===
         const summaryInputs = document.querySelectorAll('.trip-summary-input');
         summaryInputs.forEach(input => {
             input.addEventListener('input', function() {
-                const card = this.closest('.card');
-                const saveButtonContainer = card.querySelector('.save-button-container');
-                if (this.value.trim().length > 0) {
-                    saveButtonContainer.classList.remove('d-none');
-                } else {
-                    // If summary cleared and no other changes, keep save visible so user can intentionally clear summary
-                    saveButtonContainer.classList.remove('d-none');
-                }
+                // Summary is now editable without needing to show/hide save button
             });
         });
 });
@@ -123,25 +119,19 @@ function attachCheckHandler(button) {
         const row = this.closest('tr');
         row.classList.toggle('text-decoration-line-through');
         row.classList.toggle('table-success');
-        // Show save when toggled
-        const card = this.closest('.card');
-        card.querySelector('.save-button-container').classList.remove('d-none');
     });
 }
 
 function attachDeleteHandler(button) {
     button.addEventListener('click', function() {
         const row = this.closest('tr');
-        const card = this.closest('.card');
         row.remove();
-        card.querySelector('.save-button-container').classList.remove('d-none');
     });
 }
 
 function attachItemInputHandlers(input) {
     input.addEventListener('input', function() {
-        const card = this.closest('.card');
-        card.querySelector('.save-button-container').classList.remove('d-none');
+        // Items are editable
     });
 }
 
@@ -202,18 +192,11 @@ newItemInputs.forEach(input => {
         attachDeleteHandler(newRow.querySelector('.delete-item-btn'));
         attachItemInputHandlers(nameInput);
         attachItemInputHandlers(qtyInput);
-
-        // Show save
-        saveButtonContainer.classList.remove('d-none');
     }
 
-    // show save when typing in the new item input
+    // New item input is editable
     input.addEventListener('input', function() {
-        if (this.value.trim().length > 0) {
-            saveButtonContainer.classList.remove('d-none');
-        } else if (tableBody.querySelectorAll('tr').length === 1) {
-            saveButtonContainer.classList.add('d-none');
-        }
+        // Item entry in progress
     });
 
     // Enter key adds the item
@@ -249,7 +232,12 @@ const saveButtons = document.querySelectorAll('.save-list-btn');
 
 saveButtons.forEach(button => {
     button.addEventListener('click', function() {
-        const card = this.closest('.card');
+        // Find the visible trip card
+        const card = document.querySelector('.trip-card:not(.d-none)');
+        if (!card) {
+            alert('No trip selected. Please navigate to a trip.');
+            return;
+        }
         const tripId = this.getAttribute('data-trip-id');
 
         const dateInput = card.querySelector('.trip-date-display');
@@ -308,8 +296,6 @@ saveButtons.forEach(button => {
         .then(response => response.json())
         .then(data => {
             alert('List saved successfully!');
-            // Hide the save button after successful save
-            card.querySelector('.save-button-container').classList.add('d-none');
         })
         .catch(error => {
             console.error('Error saving list:', error);

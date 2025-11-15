@@ -30,7 +30,7 @@
         <!-- The trip card, making up the majority of the screen content -->
         <div id="trip-cards-container" class="w-100"> 
             {% for trip in trips %}
-                <div class="card trip-card w-100 mb-3 shadow-lg border-0" style="max-width: 600px; margin: 0 auto;">
+                <div class="card trip-card w-100 mb-3 shadow-lg border-0" data-trip-id="{{ trip.id }}" style="max-width: 600px; margin: 0 auto;">
                     <div class="card-body">
 
                         <h5 class="card-title">
