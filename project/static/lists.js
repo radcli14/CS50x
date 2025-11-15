@@ -240,6 +240,7 @@ saveButtons.forEach(button => {
         // Build the data structure to send to the API
         const listData = [];
         tableRows.forEach(row => {
+            const listItemId = row.getAttribute('data-list-item-id');
             const itemId = row.getAttribute('data-item-id');
             const nameInput = row.querySelector('.item-name-input');
             const qtyInput = row.querySelector('.item-quantity-input');
@@ -249,7 +250,8 @@ saveButtons.forEach(button => {
             // Only save the item if its name is present
             if (nameVal !== "") {
                 listData.push({
-                    id: itemId,
+                    id: listItemId,
+                    itemId: itemId,
                     name: nameVal,
                     quantity: qtyVal
                 });

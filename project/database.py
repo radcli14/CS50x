@@ -1,6 +1,7 @@
 import sqlite3
 import os
 import csv
+import re
 from flask import g, session, redirect
 from supabase import create_client, Client 
 from helpers import apology
@@ -116,22 +117,12 @@ def update_list(data):
     date = data.get("date")
     items = data.get("items") or []
 
-    # 1) Ensure store exists (if store_id not provided try to find by name or create one)
+    # Ensure store exists (if store_id not provided try to find by name or create one)
     if not store_id and store_name:
-        try:
-            resp = supabase.table("Stores").select("*").eq("name", store_name).limit(1).execute()
-            if resp and resp.data and len(resp.data) > 0:
-                store_id = resp.data[0].get("id")
-            else:
-                ins = {"name": store_name, "address": store_address}
-                created = supabase.table("Stores").insert(ins).execute()
-                print("update_list: created store", created)
-                if created and getattr(created, "data", None):
-                    store_id = created.data[0].get("id")
-        except Exception as e:
-            print("update_list: store upsert error", e)
+        store_id = update_store(store_name, store_address)
 
-    # 2) Update the trip row if trip_id provided
+    # Update the trip row if trip_id provided
+    """
     list_id = None
     if trip_id is not None:
         try:
@@ -172,57 +163,175 @@ def update_list(data):
                 list_id = created.data[0].get("list_id")
         except Exception as e:
             print("update_list: trip create error", e)
+    """
 
-    # 3) Handle items: update existing entries when possible, insert new ones otherwise
+    # Handle items: update existing entries when possible, insert new ones otherwise
     for item in items:
-        try:
-            item_id = item.get("id")
-            name = item.get("name")
-            qty = item.get("quantity") or 1
-
-            # If item_id present, attempt to update Lists.quantity where id == item_id
-            if item_id:
-                try:
-                    resp = supabase.table("Lists").update({"quantity": qty}).eq("id", item_id).execute()
-                    print(f"update_list: updated Lists id={item_id}", resp)
-                    continue
-                except Exception:
-                    # fallback to other strategies
-                    pass
-
-            # Otherwise, ensure Items row exists (find by name or create)
-            item_row_id = None
-            if name:
-                lookup = supabase.table("Items").select("*").eq("name", name).limit(1).execute()
-                if lookup and getattr(lookup, "data", None) and len(lookup.data) > 0:
-                    item_row_id = lookup.data[0].get("id")
-                else:
-                    created_item = supabase.table("Items").insert({"name": name}).execute()
-                    print("update_list: created item", created_item)
-                    if created_item and getattr(created_item, "data", None) and len(created_item.data) > 0:
-                        item_row_id = created_item.data[0].get("id")
-
-            # Insert into Lists linking to the trip's list_id
-            if list_id is None:
-                # If we don't have a list_id, try to fetch it again by querying trip
-                if trip_id is not None:
-                    resp = supabase.table("Trips").select("list_id").eq("id", trip_id).limit(1).execute()
-                    if resp and getattr(resp, "data", None):
-                        list_id = resp.data[0].get("list_id")
-
-            if list_id is not None and item_row_id is not None:
-                # Insert row into Lists (id = list_id, item_id = item_row_id)
-                ins = {"id": list_id, "item_id": item_row_id, "quantity": qty}
-                try:
-                    created_list = supabase.table("Lists").insert(ins).execute()
-                    print("update_list: inserted list row", created_list)
-                except Exception as e:
-                    print("update_list: failed to insert list row", e)
-        except Exception as e:
-            print("update_list: item processing error", e)
+        update_list_item(item, trip_id)
 
     return {"status": "ok"}
 
+
+def update_store(name, address):
+    """Upsert a store by name and address, returning the store id. Intended to be used when store_id is not provided, in which case we will create one."""
+    try:
+        # Check if the store already exists by name and address. Name is not unique in the database, but we'll assume its the same location if address also matches
+        resp = (
+            supabase.table("Stores")
+                .select("*")
+                .eq("name", name)
+                .eq("address", address)
+                .limit(1)
+                .execute()
+        )
+
+        # If found, use that store id
+        if resp and resp.data and len(resp.data) > 0:
+            return resp.data[0].get("id")
+        
+        # Otherwise, create a new store, and return its id
+        created = supabase.table("Stores").insert({
+            "name": name, 
+            "address": address
+        }).execute()
+        print("update_list: created store", created)
+        if created and getattr(created, "data", None):
+            return created.data[0].get("id")
+
+    except Exception as e:
+        print("update_list: store upsert error", e)
+
+def update_list_item(item, trip_id):
+    """Update or insert a list item row based on the provided item data, checking based on comparison to previous data."""
+    try:
+        # row_id represents the integer id, or row, in the Lists table
+        row_id = item.get("id")
+
+        # item_id represents the string id in the Items table
+        item_id = item.get("itemId")
+
+        # Name and quantity are what are displayed to the user in the frontend
+        name = item.get("name")
+        qty = item.get("quantity") or 1
+
+        print("\nupdate_list: processing item", item, trip_id)
+
+        # First check if there is existing list row and item, so we know its previous state in the database
+        previous_name = None
+        if item_id:
+            existing_item = (
+                supabase.table("Items")
+                .select("*")
+                .eq("id", item_id)
+                .limit(1)
+                .execute()
+            )
+            previous_name = existing_item.data[0].get("name") if existing_item and getattr(existing_item, "data", None) and len(existing_item.data) > 0 else None
+        previous_qty = None
+        if row_id:
+            existing_list_row = (
+                supabase.table("Lists")
+                .select("*")
+                .eq("id", row_id)
+                .limit(1)
+                .execute()
+            )
+            previous_qty = existing_list_row.data[0].get("quantity") if existing_list_row and getattr(existing_list_row, "data", None) and len(existing_list_row.data) > 0 else None
+
+        # First scenario, the user created a new item in the list.
+        # We need to determine if that item already exists in the Items table (by name).
+        # If it doesn't exist, we need to create that item. After this section, the item_id variable should be populated.
+        if not item_id and name:
+            print(" - 1st scenario: new item, need to lookup or create", name)
+
+            # First check if that name has been used before, in which case we can reuse the item_id
+            item_lookup = (
+                supabase.table("Items")
+                .select("*")
+                .eq("name", name)
+                .limit(1)
+                .execute()
+            )
+            if item_lookup and getattr(item_lookup, "data", None) and len(item_lookup.data) > 0:
+                item_id = item_lookup.data[0].get("id")
+
+            # If we did not find that name in the items table, create a new entry    
+            else:
+                item_id = generate_item_identifier(name)
+                created_item = (
+                    supabase.table("Items").insert({
+                        "id": item_id, 
+                        "name": name
+                    }).execute()
+                )
+
+                print(" - update_list_item: created item", created_item)
+                if created_item and getattr(created_item, "data", None) and len(created_item.data) > 0:
+                    item_id = created_item.data[0].get("id")
+
+        # Second scenario, the user is adding a new row, and we do have an item id, but not yet a row id.
+        # We need to insert a new row into Lists, and get the new row_id for that row.
+        if not row_id:
+            print(" - 2nd scenario: new list row, need to create", item_id, qty)
+
+            created_list_row = (
+                supabase.table("Lists").insert({
+                    "trip_id": trip_id, 
+                    "item_id": item_id, 
+                    "quantity": qty
+                }).execute()
+            )
+            print(" - update_list_item: created list row", created_list_row)
+            if created_list_row and getattr(created_list_row, "data", None) and len(created_list_row.data) > 0:
+                row_id = created_list_row.data[0].get("id")
+
+        # Third scenario, we have an existing item and we updated its quantity in the Lists row.
+        if row_id and qty != previous_qty:
+            print(" - 3rd scenario: update existing list row quantity", row_id, qty)
+
+            updated_list_row = (
+                supabase.table("Lists").update({
+                    "quantity": qty
+                }).eq("id", row_id).execute()
+            )
+            print(" - update_list_item: updated list row quantity", updated_list_row)
+
+        # Fourth scenario, we have an an existing item and we have changed its name, update the name in the Items table.
+        if item_id and name is not None and name != previous_name:
+            print(" - 4th scenario: update existing item name", item_id, name)
+
+            updated_item = (
+                supabase.table("Items").update({
+                    "name": name
+                }).eq("id", item_id).execute()
+            )
+            print(" - update_list_item: updated item name", updated_item)
+    
+
+    except Exception as e:
+        print(f" *** update_list_item: item processing error at {item} {trip_id}", e)
+
+
+def generate_item_identifier(text):
+    """Convert a string into a lowercase snake_case identifier.
+    
+    Trims whitespace, converts to lowercase, replaces spaces with underscores,
+    and removes any characters that aren't alphanumeric or underscores.
+    """
+    if not text:
+        return None
+    
+    # Trim, lowercase, and replace spaces with underscores
+    identifier = text.strip().lower().replace(" ", "_")
+    
+    # Keep only alphanumeric and underscores
+    identifier = re.sub(r'[^\w]', '', identifier)
+    
+    # Ensure it doesn't start with a number (valid variable names can't)
+    if identifier and identifier[0].isdigit():
+        identifier = "_" + identifier
+    
+    return identifier if identifier else None
 
 
 def login_user(request):

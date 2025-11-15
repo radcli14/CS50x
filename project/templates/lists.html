@@ -67,7 +67,7 @@
                             </thead>
                             <tbody>
                                 {% for item in trip.Lists %}
-                                    <tr data-item-id="{{ item.id }}">
+                                    <tr data-list-item-id="{{ item.id }}" data-item-id="{{ item.item_id }}">
                                         <td>
                                             <button type="button" class="btn btn-outline-success btn-sm check-item-btn">&#10003;</button>
                                         </td>
