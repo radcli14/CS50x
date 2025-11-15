@@ -94,6 +94,137 @@ def get_user_trips():
     return trips
 
 
+
+def update_list(data):
+    """Upsert list/trip/store/items data received from the frontend.
+
+    This is best-effort: it will update the Trips row (if `trip_id` provided),
+    upsert the store (by id or name), and update/insert list item rows.
+    The exact schema mapping is flexible because Supabase schema may differ;
+    we log responses for debugging.
+    """
+    if not data or not isinstance(data, dict):
+        print("update_list: invalid data payload")
+        return None
+
+    user_id = session.get("user_id")
+    trip_id = data.get("trip_id")
+    summary = data.get("summary")
+    store_id = data.get("store_id")
+    store_name = data.get("store_name")
+    store_address = data.get("store_address")
+    date = data.get("date")
+    items = data.get("items") or []
+
+    # 1) Ensure store exists (if store_id not provided try to find by name or create one)
+    if not store_id and store_name:
+        try:
+            resp = supabase.table("Stores").select("*").eq("name", store_name).limit(1).execute()
+            if resp and resp.data and len(resp.data) > 0:
+                store_id = resp.data[0].get("id")
+            else:
+                ins = {"name": store_name, "address": store_address}
+                created = supabase.table("Stores").insert(ins).execute()
+                print("update_list: created store", created)
+                if created and getattr(created, "data", None):
+                    store_id = created.data[0].get("id")
+        except Exception as e:
+            print("update_list: store upsert error", e)
+
+    # 2) Update the trip row if trip_id provided
+    list_id = None
+    if trip_id is not None:
+        try:
+            # Update trip fields (partial update)
+            update_payload = {}
+            if summary is not None:
+                update_payload["summary"] = summary
+            if date is not None:
+                update_payload["date"] = date
+            if store_id is not None:
+                update_payload["store_id"] = store_id
+
+            if update_payload:
+                resp = supabase.table("Trips").update(update_payload).eq("id", trip_id).execute()
+                print("update_list: updated trip", resp)
+
+            # Fetch list_id for this trip (if present) to use for list inserts
+            resp = supabase.table("Trips").select("list_id").eq("id", trip_id).limit(1).execute()
+            if resp and getattr(resp, "data", None):
+                row = resp.data[0]
+                list_id = row.get("list_id")
+        except Exception as e:
+            print("update_list: trip update/fetch error", e)
+    else:
+        # No trip_id: try to create a trip for the user (best-effort)
+        try:
+            ins = {"user_id": user_id}
+            if store_id is not None:
+                ins["store_id"] = store_id
+            if date is not None:
+                ins["date"] = date
+            if summary is not None:
+                ins["summary"] = summary
+            created = supabase.table("Trips").insert(ins).execute()
+            print("update_list: created trip", created)
+            if created and getattr(created, "data", None) and len(created.data) > 0:
+                trip_id = created.data[0].get("id")
+                list_id = created.data[0].get("list_id")
+        except Exception as e:
+            print("update_list: trip create error", e)
+
+    # 3) Handle items: update existing entries when possible, insert new ones otherwise
+    for item in items:
+        try:
+            item_id = item.get("id")
+            name = item.get("name")
+            qty = item.get("quantity") or 1
+
+            # If item_id present, attempt to update Lists.quantity where id == item_id
+            if item_id:
+                try:
+                    resp = supabase.table("Lists").update({"quantity": qty}).eq("id", item_id).execute()
+                    print(f"update_list: updated Lists id={item_id}", resp)
+                    continue
+                except Exception:
+                    # fallback to other strategies
+                    pass
+
+            # Otherwise, ensure Items row exists (find by name or create)
+            item_row_id = None
+            if name:
+                lookup = supabase.table("Items").select("*").eq("name", name).limit(1).execute()
+                if lookup and getattr(lookup, "data", None) and len(lookup.data) > 0:
+                    item_row_id = lookup.data[0].get("id")
+                else:
+                    created_item = supabase.table("Items").insert({"name": name}).execute()
+                    print("update_list: created item", created_item)
+                    if created_item and getattr(created_item, "data", None) and len(created_item.data) > 0:
+                        item_row_id = created_item.data[0].get("id")
+
+            # Insert into Lists linking to the trip's list_id
+            if list_id is None:
+                # If we don't have a list_id, try to fetch it again by querying trip
+                if trip_id is not None:
+                    resp = supabase.table("Trips").select("list_id").eq("id", trip_id).limit(1).execute()
+                    if resp and getattr(resp, "data", None):
+                        list_id = resp.data[0].get("list_id")
+
+            if list_id is not None and item_row_id is not None:
+                # Insert row into Lists (id = list_id, item_id = item_row_id)
+                ins = {"id": list_id, "item_id": item_row_id, "quantity": qty}
+                try:
+                    created_list = supabase.table("Lists").insert(ins).execute()
+                    print("update_list: inserted list row", created_list)
+                except Exception as e:
+                    print("update_list: failed to insert list row", e)
+        except Exception as e:
+            print("update_list: item processing error", e)
+
+    return {"status": "ok"}
+
+
+
 def login_user(request):
     """Login a user with form data"""
     # Ensure username was submitted

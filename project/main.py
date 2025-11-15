@@ -8,7 +8,7 @@ from helpers import login_required
 from database import (
     change_user_password, 
     get_stores, get_user_data, get_user_lists, get_user_meals, get_user_trips, 
-    login_user, register_new_user
+    login_user, register_new_user, update_list
     )
 
 app = Flask(__name__)
@@ -83,17 +83,26 @@ def lists():
 @login_required
 def lists_save():
     """Calbback to user tapping the save button on the list page"""
-    # 1. Access the JSON payload
+    # Access the JSON payload
     data = request.get_json()
 
-    # 2. Check if data was successfully parsed
+    # Check if data was successfully parsed
     if not data:
         # Return an error if no JSON data was found
         print("Error: No JSON data received.")
         return jsonify({"error": "Missing JSON data in request"}), 400
     
     print("lists_save", data)
-    return jsonify({"message": "Test successful"}), 200
+
+    # Persist the incoming list/trip data immediately (best-effort)
+    try:
+        resp = update_list(data)
+        print("update_list response:", resp)
+    except Exception as e:
+        print("update_list error:", e)
+        return jsonify({"error": "Failed to update list"}), 400
+
+    return jsonify({"message": "Save processed"}), 200
 
 
 @app.route("/logout")
