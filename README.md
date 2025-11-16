@@ -1,5 +1,6 @@
 # CS50x
-Homework assignments for Harvard CS50x
+I created this repository for tracking homework assignments for Harvard CS50x, before realizing they were already being tracked in the [CS50 Codespace](https://github.com/code50/16735129).
+It is now primarily for my development purposes on the final project, which is the subject of the rest of this Readme content.
 
 # CS50X Final Project: MealPlan
 
@@ -21,7 +22,7 @@ By logging in, an individual user will have their own unique set of shopping lis
 
 Future features may include sharing of user data with friends and family members, and AI-generated meal plans based on your personal preferences.
 
-### Vercel Hosting
+## Vercel Hosting
 
 MealPlan is hosted on Vercel at https://mealplan-three.vercel.app/.
 To enable this hosting, I created a separate GitHub repository, outside of the CS50-provided codespace, at https://github.com/radcli14/cs50x, then, when creating the project on Vercel you may link to your GitHub account and your new repository.
@@ -36,7 +37,7 @@ vercel dev
 ```
 This will build and launch your app in the exact same way as if it were deployed on the Vercel cloud host, but allows you to test on your own system similar to the `http-server` command that we learned in the course.
 
-### Supabase Data Persistence
+## Supabase Data Persistence
 
 User data, including lists, meals, and stores, are hosted on [Supabase](https://supabase.com/).
 This is an open-source, Postgres hosting service, providing a similar set of CRUD commands to what we learned in the SQL section of CS50x.
@@ -91,3 +92,21 @@ for trip in trips:
     trip.pop("Stores");
 ```
 
+## Key Files
+
+In the top-level directory, we find the `main.py` file which provides our Flask app routes, and the `database.py` file which implements logic for communicating with Supabase.
+The `helpers.py` file is largely reused from lecture, with the same meme-ified `apology` page, and `login_required` deocrator.
+Python module requirements and Vercel configuration are contaned in `requirements.txt` and `vercel.json`, respectively, though I rarely touched these after downloading the template.
+
+The `templates` folder contains HTML files, generally extending the `layouts.html` base file, which largely matches the one used in the Finance assignment.
+Naming conventions of these files matches the naming of the pages that you visit in the browser.
+
+The `static` folder contains image files and Javascript, the latter of which is used on the client side, with naming convention to match the associated HTML.
+These Javascript files are called using `<script>` tags in the body of the corresponding HTML.
+
+## AI Use
+
+In the course of developing this web app, I did use the following AI tools:
+- Gemini in the browser, for answering how-to questions about Flask, HTML, or Javascript.
+- GitHub Copilot inside of a CodeSpace, for application-specific questions, autocomplete, and some code generation.
+Top-level app design, basic architecture and code templating, Vercel/Supabase setup, and other tasks were performed by myself, the human.
