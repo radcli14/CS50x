@@ -4,6 +4,10 @@ It is now primarily for my development purposes on the final project, which is t
 
 # CS50X Final Project: MealPlan
 
+| Main Page                                   | Lists Page                                    |
+|---------------------------------------------|-----------------------------------------------|
+| ![Main](project/static/screenshot_main.png) | ![Lists](project/static/screenshot_lists.png) |
+
 #### Video Demo:  <URL HERE>
 
 ### [👩‍💻 Try it on Vercel](https://mealplan-three.vercel.app/)
