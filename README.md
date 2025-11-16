@@ -8,7 +8,7 @@ It is now primarily for my development purposes on the final project, which is t
 |---------------------------------------------|-----------------------------------------------|
 | ![Main](project/static/screenshot_main.png) | ![Lists](project/static/screenshot_lists.png) |
 
-#### Video Demo:  <URL HERE>
+#### Video Demo: [YouTube](https://youtu.be/XwLn9bsZ04s)
 
 ### [👩‍💻 Try it on Vercel](https://mealplan-three.vercel.app/)
 
