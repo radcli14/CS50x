@@ -45,6 +45,13 @@ def result(board, action):
     """
     Returns the board that results from making move (i, j) on the board.
     """
+    # Make sure the move is valid
+    i, j = action
+    if board[i][j] is not None:
+        raise Exception(f"Board position ({i},{j}) is already taken")
+    if i < 0 or j < 0 or i > 2 or j > 2:
+        raise Exception(f"Board position ({i},{j}) is not a valid tictactoe action")
+
     current_player = player(board)
     board_copy = [row.copy() for row in board]
     board_copy[action[0]][action[1]] = current_player
@@ -59,18 +66,18 @@ def winner(board):
     for row in board:
         if row[0] is not None and row[0] == row[1] == row[2]:
             return row[0]
-        
+
     # Check if any row has the same non-empty value
     for k in range(3):
         if board[0][k] is not None and board[0][k] == board[1][k] == board[2][k]:
             return board[0][k]
-        
+
     # Check if any diagonal has the same non-empty value
     if board[0][0] is not None and board[0][0] == board[1][1] == board[2][2]:
         return board[0][0]
     if board[0][2] is not None and board[0][2] == board[1][1] == board[2][0]:
         return board[0][2]
-    
+
     # No winner
     return None
 
@@ -82,7 +89,7 @@ def terminal(board):
     # First check if the board is full
     if count(board) == 9:
         return True
-    
+
     # Then check if there is a winner
     if winner(board) is not None:
         return True
@@ -103,13 +110,20 @@ def minimax(board):
     """
     Returns the optimal action for the current player on the board.
     """
-    current_player = player(board)
+    # Check if the board already has a winner
+    if winner(board) is not None:
+        return None
 
-    best_value = -math.inf if current_player == X else math.inf
+    # Get current player, and initialize
+    current_player = player(board)
     best_action = None
+
+    # Set properties and that are dependent on if you have the max or the min player
+    best_value = -math.inf if current_player == X else math.inf
     strategy = min_value if current_player == X else max_value
     is_best = (lambda v: v > best_value) if current_player == X else (lambda v: v < best_value)
 
+    # Apply the minimax algorithm
     for action in actions(board):
         action_result = result(board, action)
         value = strategy(action_result)
@@ -117,6 +131,7 @@ def minimax(board):
             best_value = value
             best_action = action
 
+    # Return the best available move
     return best_action
 
 
