@@ -18,50 +18,91 @@ def initial_state():
             [EMPTY, EMPTY, EMPTY]]
 
 
+def count(board):
+    return sum([sum([0 if pos is None else 1 for pos in row]) for row in board])
+
+
 def player(board):
     """
     Returns player who has the next turn on a board.
     """
-    raise NotImplementedError
+    return X if count(board) % 2 == 0 else O
 
 
 def actions(board):
     """
     Returns set of all possible actions (i, j) available on the board.
     """
-    raise NotImplementedError
+    actions = set()
+    for i in range(3):
+        for j in range(3):
+            if board[i][j] is None:
+                actions.add((i, j))
+    return actions
 
 
 def result(board, action):
     """
     Returns the board that results from making move (i, j) on the board.
     """
-    raise NotImplementedError
+    current_player = player(board)
+    board_copy = [row.copy() for row in board]
+    board_copy[action[0]][action[1]] = current_player
+    return board_copy
 
 
 def winner(board):
     """
     Returns the winner of the game, if there is one.
     """
-    raise NotImplementedError
+    # Check if any row has the same non-empty value
+    for row in board:
+        if row[0] is not None and row[0] == row[1] == row[2]:
+            return row[0]
+        
+    # Check if any row has the same non-empty value
+    for k in range(3):
+        if board[0][k] is not None and board[0][k] == board[1][k] == board[2][k]:
+            return row[0][k]
+        
+    # Check if any diagonal has the same non-empty value
+    if board[0][0] is not None and board[0][0] == board[1][1] == board[2][2]:
+        return board[0][0]
+    if board[0][2] is not None and board[0][2] == board[1][1] == board[2][0]:
+        return board[0][2]
+    
+    # No winner
+    return None
 
 
 def terminal(board):
     """
     Returns True if game is over, False otherwise.
     """
-    raise NotImplementedError
+    # First check if the board is full
+    if count(board) == 9:
+        return True
+    
+    # Then check if there is a winner
+    if winner(board) is not None:
+        return True
+
+    # No winner and board not full
+    return False
 
 
 def utility(board):
     """
     Returns 1 if X has won the game, -1 if O has won, 0 otherwise.
     """
-    raise NotImplementedError
+    board_winner = winner(board)
+    return 1 if board_winner == X else -1 if board_winner == O else 0
 
 
 def minimax(board):
     """
     Returns the optimal action for the current player on the board.
     """
-    raise NotImplementedError
+    all_actions = actions(board)
+    return all_actions.pop()  # TODO Placeholder implementation
+
