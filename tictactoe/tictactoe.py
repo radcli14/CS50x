@@ -63,7 +63,7 @@ def winner(board):
     # Check if any row has the same non-empty value
     for k in range(3):
         if board[0][k] is not None and board[0][k] == board[1][k] == board[2][k]:
-            return row[0][k]
+            return board[0][k]
         
     # Check if any diagonal has the same non-empty value
     if board[0][0] is not None and board[0][0] == board[1][1] == board[2][2]:
@@ -103,6 +103,36 @@ def minimax(board):
     """
     Returns the optimal action for the current player on the board.
     """
-    all_actions = actions(board)
-    return all_actions.pop()  # TODO Placeholder implementation
+    current_player = player(board)
 
+    best_value = -math.inf if current_player == X else math.inf
+    best_action = None
+    strategy = min_value if current_player == X else max_value
+    is_best = (lambda v: v > best_value) if current_player == X else (lambda v: v < best_value)
+
+    for action in actions(board):
+        action_result = result(board, action)
+        value = strategy(action_result)
+        if is_best(value):
+            best_value = value
+            best_action = action
+
+    return best_action
+
+
+def max_value(board):
+    if terminal(board):
+        return utility(board)
+    v = -math.inf
+    for action in actions(board):
+        v = max(v, min_value(result(board, action)))
+    return v
+
+
+def min_value(board):
+    if terminal(board):
+        return utility(board)
+    v = math.inf
+    for action in actions(board):
+        v = min(v, max_value(result(board, action)))
+    return v
