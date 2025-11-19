@@ -105,27 +105,34 @@ class Sentence():
         """
         Returns the set of all cells in self.cells known to be mines.
         """
-        raise NotImplementedError
+        # Only if the count matches the number of cells do we know they are all mines, otherwise none are known
+        return set(self.cells) if self.count == len(self.cells) else set()
 
     def known_safes(self):
         """
         Returns the set of all cells in self.cells known to be safe.
         """
-        raise NotImplementedError
+        # Only if the count is zero do we know all cells are safe, otherwise none are known
+        return set(self.cells) if self.count == 0 else set()
 
     def mark_mine(self, cell):
         """
         Updates internal knowledge representation given the fact that
         a cell is known to be a mine.
         """
-        raise NotImplementedError
+        # If this cell is present, remove it and decrease the count for the others
+        if cell in self.cells:
+            self.cells.remove(cell)
+            self.count -= 1
 
     def mark_safe(self, cell):
         """
         Updates internal knowledge representation given the fact that
         a cell is known to be safe.
         """
-        raise NotImplementedError
+        # Remove this cell if it is present, but keep the count the same for the others
+        if cell in self.cells:
+            self.cells.remove(cell)
 
 
 class MinesweeperAI():
@@ -182,7 +189,24 @@ class MinesweeperAI():
             5) add any new sentences to the AI's knowledge base
                if they can be inferred from existing knowledge
         """
-        raise NotImplementedError
+        self.moves_made.add(cell)  # 1)
+        self.mark_safe(cell)  # 2)
+
+        # 3)
+        cells = set()
+        for i in range(cell[0] - 1, cell[0] + 2):
+            for j in range(cell[1] - 1, cell[1] + 2):
+                if (0 <= i < self.height and 0 <= j < self.width and (i, j) != cell):
+                    cells.add((i, j))
+        new_sentence = Sentence(cells, count)
+        self.knowledge.append(new_sentence)
+
+        # TODO fill in fourth and fifth steps
+        # 4)
+
+        # 5)
+        
+        #raise NotImplementedError
 
     def make_safe_move(self):
         """
