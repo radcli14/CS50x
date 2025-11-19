@@ -227,8 +227,9 @@ class MinesweeperAI():
         This function may use the knowledge in self.mines, self.safes
         and self.moves_made, but should not modify any of those values.
         """
+        available_safes = self.safes - self.moves_made
         try:
-            return self.safes.pop()
+            return available_safes.pop()
         except:
             return None
 
@@ -239,10 +240,9 @@ class MinesweeperAI():
             1) have not already been chosen, and
             2) are not known to be mines
         """
+        # Loop until a valid random cell is found
         while True:
-            i = random.randrange(self.height)
-            j = random.randrange(self.width)
-            cell = (i, j)
+            cell = random.randrange(self.height), random.randrange(self.width)
             if cell not in self.moves_made and cell not in self.mines:
                 return cell
 
