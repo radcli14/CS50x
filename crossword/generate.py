@@ -232,7 +232,21 @@ class CrosswordCreator():
         """
         words = self.domains[var]
         # TODO: apply heuristics
-        return words
+        counts = {word: 0 for word in words}
+        for word_x in words:
+            for y in self.crossword.neighbors(var):
+                if y not in assignment:
+                    pass
+
+                # We know x,y has an overlap because it is a neighbor
+                idx_x, idx_y = self.crossword.overlaps.get((var, y))
+
+                # Check each available word in y, if its ruled out, increment count
+                for word_y in self.domains[y]:
+                    if word_x[idx_x] != word_y[idx_y]:
+                        counts[word_x] += 1
+        
+        return sorted(words, key=lambda w: counts[w])
 
     def select_unassigned_variable(self, assignment):
         """
