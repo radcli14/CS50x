@@ -230,10 +230,8 @@ class CrosswordCreator():
         The first value in the list, for example, should be the one
         that rules out the fewest values among the neighbors of `var`.
         """
-        words = self.domains[var]
-        # TODO: apply heuristics
-        counts = {word: 0 for word in words}
-        for word_x in words:
+        counts = {word: 0 for word in self.domains[var]}
+        for word_x in counts:
             for y in self.crossword.neighbors(var):
                 if y not in assignment:
                     pass
@@ -246,7 +244,7 @@ class CrosswordCreator():
                     if word_x[idx_x] != word_y[idx_y]:
                         counts[word_x] += 1
         
-        return sorted(words, key=lambda w: counts[w])
+        return sorted(list(counts.keys()), key=lambda w: counts[w])
 
     def select_unassigned_variable(self, assignment):
         """
@@ -256,11 +254,16 @@ class CrosswordCreator():
         degree. If there is a tie, any of the tied variables are acceptable
         return values.
         """
-        for variable in self.crossword.variables:
+        # Sort by the minimum number of remaining values
+        sorted_by_min_remaining = sorted(
+            self.crossword.variables, 
+            key=lambda v: len(self.domains[v])
+        )
+
+        # Find the first that is not already assigned, and return it
+        for variable in sorted_by_min_remaining:
             if variable not in assignment:
                 return variable
-            
-        # TODO: apply heuristics
 
     def backtrack(self, assignment):
         """
