@@ -230,7 +230,9 @@ class CrosswordCreator():
         The first value in the list, for example, should be the one
         that rules out the fewest values among the neighbors of `var`.
         """
-        raise NotImplementedError
+        words = self.domains[var]
+        # TODO: apply heuristics
+        return words
 
     def select_unassigned_variable(self, assignment):
         """
@@ -240,7 +242,11 @@ class CrosswordCreator():
         degree. If there is a tie, any of the tied variables are acceptable
         return values.
         """
-        raise NotImplementedError
+        for variable in self.crossword.variables:
+            if variable not in assignment:
+                return variable
+            
+        # TODO: apply heuristics
 
     def backtrack(self, assignment):
         """
@@ -251,8 +257,27 @@ class CrosswordCreator():
 
         If no assignment is possible, return None.
         """
-        raise NotImplementedError
+        # First check if the assignment that was provided is already complete
+        if self.assignment_complete(assignment):
+            return assignment
+        
+        # Get an unnassigned variable
+        variable = self.select_unassigned_variable(assignment)
+        for word in self.domains[variable]:
+            # We need to copy the assignment to check consistency
+            assignment_copy = assignment.copy()
+            assignment_copy[variable] = word
+            if self.consistent(assignment_copy):
+                # If consistent, assig that word to the original
+                assignment[variable] = word
+                result = self.backtrack(assignment)
 
+                # If we got a result, return that up the call heirarchy
+                if result is not None:
+                    return result
+                
+                # Otherwise, there was not a possible result, so this line will backtrack
+                assignment.pop(variable)
 
 def main():
 
