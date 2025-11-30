@@ -138,7 +138,7 @@ class CrosswordCreator():
                     # If a match was found, this word_x is valid, break out
                     has_match = True
                     break
-                
+
             # If we did not find a match, then we should revise
             if not has_match:
                 self.domains[x].remove(word_x)
@@ -155,7 +155,35 @@ class CrosswordCreator():
         Return True if arc consistency is enforced and no domains are empty;
         return False if one or more domains end up empty.
         """
-        raise NotImplementedError
+
+        # If provided arcs is empty, initialize queue with all arcs
+        if arcs is None:
+            queue = []
+            for x in self.crossword.variables:
+                for y in self.crossword.neighbors(x):
+                    queue.append((x, y))
+
+        # Otherwise, use the provided arcs as the queue
+        else:
+            queue = arcs.copy()
+
+        while len(queue) > 0:
+            # Dequeue, get the first arc inserted    
+            x, y = queue.pop(0)
+
+            # Check if x should be revised
+            if self.revise(x, y):
+
+                # If X domain is empty, this problem cannot be resolved
+                if len(self.domains[x]) == 0:
+                    return False
+                
+                # Add neighbors that aren't y back into the queue
+                for z in self.crossword.neighbors(x):
+                    if z != y:
+                        queue.append((z, x))
+
+        return True
 
     def assignment_complete(self, assignment):
         """
