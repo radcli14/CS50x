@@ -8,8 +8,16 @@ from helpers import apology
 from werkzeug.security import check_password_hash, generate_password_hash
 
 # Supabase environment variables and client
-url: str = os.environ.get("MEALPLAN_SUPABASE_URL") or "unknown-url"
-key: str = os.environ.get("MEALPLAN_SUPABASE_KEY") or "unknown-key"
+url: str = os.environ.get("MEALPLAN_SUPABASE_URL")
+key: str = os.environ.get("MEALPLAN_SUPABASE_KEY")
+
+# Non-vercel fallback
+if not url or not key:
+    from dotenv import load_dotenv
+    load_dotenv()
+    url = os.environ.get("MEALPLAN_SUPABASE_URL") or "unknown-url"
+    key = os.environ.get("MEALPLAN_SUPABASE_KEY") or "unknown-key"
+
 supabase: Client = create_client(url, key)
 
 
@@ -86,22 +94,28 @@ def update_stores(data):
     return {"status": "ok"}
 
 
-def get_user_data():
+def get_user_data(user_id=None):
     """Get the active user's data"""
-    response = supabase.table("Users").select("*").eq("id", session["user_id"]).execute()
+    if not user_id:
+        user_id = session.get("user_id")
+    response = supabase.table("Users").select("*").eq("id", user_id).execute()
     if len(response.data) > 0:
         return response.data[0]
 
 
-def get_user_lists():
+def get_user_lists(user_id=None):
     """Get all of the lists created by the active user"""
-    response = supabase.table("Lists").select("*").execute() # TODO: have to get user items from trips .eq("user_id", session["user_id"])
+    if not user_id:
+        user_id = session.get("user_id")
+    response = supabase.table("Lists").select("*").execute() # Doesn't work to .eq("user_id", user_id) because Lists maps list ids to item ids, not users
     return response.data
 
 
-def get_user_meals():
+def get_user_meals(user_id=None):
     """Get all of the meals created by the active user"""
-    response = supabase.table("Meals").select("*").eq("user_id", session["user_id"]).execute()
+    if not user_id:
+        user_id = session.get("user_id")
+    response = supabase.table("Meals").select("*").eq("user_id", user_id).execute()
     return response.data
 
 
@@ -144,12 +158,14 @@ def update_meals(data):
     return {"status": "ok"}
 
 
-def get_user_trips():
+def get_user_trips(user_id=None):
     """Get all of the trips created by the active user"""
+    if user_id is None:
+        user_id = session.get("user_id")
     response = (
         supabase.from_("Trips")
             .select("id, user_id, store_id, date, summary, Stores(name, address), Lists(id, item_id, quantity, Items(name))")
-            .eq("user_id", session["user_id"])
+            .eq("user_id", user_id)
             .execute() 
     )
     trips = response.data

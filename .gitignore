@@ -1,6 +1,7 @@
 */flask_session/
 __pycache__
 *.db
+*.env
 
 .vercel
 
