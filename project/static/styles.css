@@ -110,3 +110,26 @@ nav .navbar-brand .green
 .index-link .card-body h2, .index-link .card-body p {
     color: #111 !important;
 }
+
+/* Make quantity inputs narrower, especially on mobile */
+.item-quantity-input,
+.new-item-quantity {
+    max-width: 80px;
+    min-width: 60px;
+}
+
+/* Adjust table column widths for better mobile display */
+.trip-item-table td:nth-child(1),
+.trip-item-table th:nth-child(1) {
+    width: 40px; /* Check button column */
+}
+
+.trip-item-table td:nth-child(3),
+.trip-item-table th:nth-child(3) {
+    width: 80px; /* Quantity column */
+}
+
+.trip-item-table td:nth-child(4),
+.trip-item-table th:nth-child(4) {
+    width: 40px; /* Delete button column */
+}
