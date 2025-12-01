@@ -6,10 +6,11 @@ from flask_session import Session
 
 from helpers import login_required
 from database import (
-    change_user_password, 
-    get_stores, get_user_data, get_user_lists, get_user_meals, get_user_trips, 
+    change_user_password,
+    get_stores, get_user_data, get_user_lists, get_user_meals, get_user_trips,
     login_user, register_new_user, update_list, create_blank_trip, update_meals, update_stores
     )
+from prompt import generate_meal_plan_and_list
 
 app = Flask(__name__)
 
@@ -208,4 +209,89 @@ def stores_save():
         return jsonify({"error": "Failed to update stores"}), 400
 
     return jsonify({"message": "Save processed"}), 200
+
+
+@app.route("/prompt")
+@login_required
+def prompt():
+    """Show the AI prompt page for generating meal plans and shopping lists"""
+    data = get_user_data()
+    stores = get_stores()
+    return render_template("prompt.html", data=data, stores=stores)
+
+
+@app.route("/prompt_generate", methods=["POST"])
+@login_required
+def prompt_generate():
+    """Generate meal plan and shopping list using Gemini API"""
+    # Access the JSON payload
+    data = request.get_json()
+
+    # Check if data was successfully parsed
+    if not data:
+        print("Error: No JSON data received.")
+        return jsonify({"error": "Missing JSON data in request"}), 400
+
+    user_request = data.get("prompt")
+    if not user_request:
+        return jsonify({"error": "Missing prompt text"}), 400
+
+    print("prompt_generate, user_request:", user_request)
+
+    # Call the Gemini API to generate meal plan and shopping list
+    try:
+        user_id = session.get("user_id")
+        result = generate_meal_plan_and_list(user_request, user_id=user_id)
+        return jsonify(result), 200
+    except Exception as e:
+        print("prompt_generate error:", e)
+        return jsonify({"error": f"Failed to generate meal plan: {str(e)}"}), 500
+
+
+@app.route("/prompt_save", methods=["POST"])
+@login_required
+def prompt_save():
+    """Save the generated meal plan and shopping list to the database"""
+    # Access the JSON payload
+    data = request.get_json()
+
+    # Check if data was successfully parsed
+    if not data:
+        print("Error: No JSON data received.")
+        return jsonify({"error": "Missing JSON data in request"}), 400
+
+    meals = data.get("meals") or []
+    items = data.get("items") or []
+    trip_date = data.get("date")
+    trip_summary = data.get("summary")
+    store_id = data.get("store_id")
+    store_name = data.get("store_name")
+    store_address = data.get("store_address")
+
+    print("prompt_save, meals:", meals, "items:", items, "store:", store_name)
+
+    try:
+        # Save meals to the Meals table
+        if meals:
+            resp = update_meals({"meals": meals})
+            print("update_meals response:", resp)
+
+        # Create a new trip and save items to the Lists table
+        if items:
+            # Create trip data structure matching what update_list expects
+            trip_data = {
+                "date": trip_date,
+                "summary": trip_summary,
+                "store_id": store_id,
+                "store_name": store_name,
+                "store_address": store_address,
+                "items": items
+            }
+            resp = update_list(trip_data)
+            print("update_list response:", resp)
+
+        return jsonify({"message": "Save processed"}), 200
+    except Exception as e:
+        print("prompt_save error:", e)
+        return jsonify({"error": f"Failed to save data: {str(e)}"}), 500
 

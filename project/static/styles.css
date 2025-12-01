@@ -62,9 +62,17 @@ nav .navbar-brand .green
     background-attachment: fixed;
 }
 .bg-stores {
-    background-image: 
+    background-image:
         linear-gradient(135deg, rgba(248, 255, 248, 0.75) 0%, rgba(230, 247, 233, 0.75) 100%),
         url('/static/bg3.jpeg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+}
+.bg-prompt {
+    background-image:
+        linear-gradient(135deg, rgba(240, 242, 255, 0.75) 0%, rgba(225, 230, 255, 0.75) 100%),
+        url('/static/bg4.jpeg');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -74,6 +82,29 @@ nav .navbar-brand .green
 .index-link.lists-link .card-body { background-image: linear-gradient(135deg, #fff1f1 0%, #ffd6d6 100%); }
 .index-link.meals-link .card-body { background-image: linear-gradient(135deg, #ffffff 0%, #f2f2f2 100%); }
 .index-link.stores-link .card-body { background-image: linear-gradient(135deg, #f8fff8 0%, #e6f7e9 100%); }
+.index-link.prompt-link .card-body { background-image: linear-gradient(135deg, #f0f2ff 0%, #e1e6ff 100%); }
+
+/* Icon sizing - 70% of display-1 */
+.icon-custom {
+    font-size: 4.9rem; /* 70% of display-1 (7rem) */
+}
+
+/* Card-specific icon and header colors */
+/* Lists card - red/pink hue */
+.lists-link .card-icon { color: #d94848 !important; }
+.lists-link .card-title { color: #a03030 !important; }
+
+/* Meals card - warm gray hue */
+.meals-link .card-icon { color: #c49a3a !important; }
+.meals-link .card-title { color: #8b6d1f !important; }
+
+/* Stores card - green hue */
+.stores-link .card-icon { color: #4a9d5f !important; }
+.stores-link .card-title { color: #2d7042 !important; }
+
+/* Prompt card - blue/purple hue */
+.prompt-link .card-icon { color: #6b7fd1 !important; }
+.prompt-link .card-title { color: #4a5da0 !important; }
 
 /* Ensure card text stands out on colored backgrounds */
 .index-link .card-body h2, .index-link .card-body p {

@@ -9,16 +9,16 @@
 {% block main %}
 
     <div class="container py-5">
-        <h1 class="text-center mb-5 display-4 text-primary">🌮 Welcome, {{ data.username }} 🍕</h1>
+        <h1 class="text-center mb-5 display-4 welcome-text">🌮 Welcome, {{ data.username }} 🍕</h1>
 
-        <div class="row row-cols-1 row-cols-md-3 g-4">
+        <div class="row row-cols-1 row-cols-md-2 g-4">
 
             <div class="col">
                 <a href="/lists" class="text-decoration-none index-link lists-link">
                     <div class="card h-100 shadow-lg border-0 card-hover-effect">
                         <div class="card-body p-4 text-center">
-                            <i class="fas fa-clipboard-list fa-4x text-info mb-3"></i>
-                            <h2 class="card-title fw-bold text-dark">Lists</h2>
+                            <i class="bi bi-clipboard-check icon-custom card-icon mb-3"></i>
+                            <h2 class="card-title fw-bold">Lists</h2>
                             <p class="card-text text-muted">Create and check off items.</p>
                         </div>
                     </div>
@@ -29,8 +29,8 @@
                 <a href="/meals" class="text-decoration-none index-link meals-link">
                     <div class="card h-100 shadow-lg border-0 card-hover-effect">
                         <div class="card-body p-4 text-center">
-                            <i class="fas fa-utensils fa-4x text-warning mb-3"></i>
-                            <h2 class="card-title fw-bold text-dark">Meals</h2>
+                            <i class="bi bi-egg-fried icon-custom card-icon mb-3"></i>
+                            <h2 class="card-title fw-bold">Meals</h2>
                             <p class="card-text text-muted">Log meals by date, type, and summary.</p>
                         </div>
                     </div>
@@ -41,9 +41,21 @@
                 <a href="/stores" class="text-decoration-none index-link stores-link">
                     <div class="card h-100 shadow-lg border-0 card-hover-effect">
                         <div class="card-body p-4 text-center">
-                            <i class="fas fa-store fa-4x text-success mb-3"></i>
-                            <h2 class="card-title fw-bold text-dark">Stores</h2>
+                            <i class="bi bi-shop icon-custom card-icon mb-3"></i>
+                            <h2 class="card-title fw-bold">Stores</h2>
                             <p class="card-text text-muted">Track your frequently visited locations.</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col">
+                <a href="/prompt" class="text-decoration-none index-link prompt-link">
+                    <div class="card h-100 shadow-lg border-0 card-hover-effect">
+                        <div class="card-body p-4 text-center">
+                            <i class="bi bi-stars icon-custom card-icon mb-3"></i>
+                            <h2 class="card-title fw-bold">Prompt</h2>
+                            <p class="card-text text-muted">Generate meal plans and shopping lists with AI.</p>
                         </div>
                     </div>
                 </a>
@@ -52,6 +64,13 @@
     </div>
 
     <style>
+        /* White text with blue-tinted shadow for welcome message */
+        .welcome-text {
+            color: white;
+            text-shadow: 2px 2px 8px rgba(13, 110, 253, 0.6),
+                         -2px -2px 8px rgba(13, 110, 253, 0.4);
+        }
+
         /* Add a subtle hover effect to make the cards feel interactive */
         .card-hover-effect {
             transition: transform 0.3s ease, box-shadow 0.3s ease;

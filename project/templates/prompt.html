@@ -1,0 +1,90 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    AI Prompt
+{% endblock %}
+
+{% block body_class %}bg-prompt{% endblock %}
+
+{% block main %}
+
+    <div class="d-flex flex-column align-items-center">
+        <h1>AI Meal Planner for {{ data.username }}</h1>
+
+        <!-- Input section for the prompt -->
+        <div class="card w-100 mb-4 shadow-lg border-0" style="max-width: 800px;">
+            <div class="card-body">
+                <h5 class="card-title">Describe Your Trip</h5>
+                <textarea class="form-control mb-3" id="user-prompt" rows="4" placeholder="E.g., I'm planning a 5-day trip to Costco. I'm craving Mediterranean food and want some healthy breakfast options."></textarea>
+                <button type="button" class="btn btn-primary" id="generate-btn">
+                    <i class="bi bi-magic"></i> Generate Plan
+                </button>
+                <div id="loading-spinner" class="spinner-border text-primary ms-3 d-none" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results section (initially hidden) -->
+        <div id="results-section" class="w-100 d-none" style="max-width: 800px;">
+
+            <!-- Save button at the top -->
+            <div class="btn-toolbar mb-3" role="toolbar" aria-label="Toolbar with button groups">
+                <div class="btn-group" role="group" aria-label="Save">
+                    <button type="button" class="btn btn-success" id="save-btn">
+                        <i class="bi bi-floppy"></i> Save All
+                    </button>
+                </div>
+            </div>
+
+            <!-- Shopping List Section -->
+            <div class="mb-4">
+                <h2 class="mb-3">Shopping List</h2>
+                <div class="card w-100 shadow-lg border-0">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Trip Date</label>
+                            <input type="date" class="form-control" id="trip-date">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Store</label>
+                            <select class="form-select" id="store-select">
+                                <option value="" disabled selected>Select a Store</option>
+                                {% for store in stores %}
+                                    <option value="{{ store.name }}"
+                                            data-store-id="{{ store.id }}"
+                                            data-address="{{ store.address }}">
+                                        {{ store.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Trip Summary</label>
+                            <textarea class="form-control" id="trip-summary" rows="2"></textarea>
+                        </div>
+                        <table class="table">
+                            <thead>
+                                <th></th>
+                                <th>Item</th>
+                                <th>Quantity</th>
+                                <th></th>
+                            </thead>
+                            <tbody id="items-table-body">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Meal Plan Section -->
+            <div class="mb-4">
+                <h2 class="mb-3">Meal Plan</h2>
+                <div id="meals-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='prompt.js') }}"></script>
+
+{% endblock %}
