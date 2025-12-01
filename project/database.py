@@ -3,6 +3,7 @@ import os
 import csv
 import re
 from flask import g, session, redirect
+import pandas as pd
 from supabase import create_client, Client 
 from helpers import apology
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -102,6 +103,13 @@ def get_user_data(user_id=None):
     if len(response.data) > 0:
         return response.data[0]
 
+def get_user_name(user_id=None):
+    """Get the active user's name"""
+    if not user_id:
+        user_id = session.get("user_id")
+    response = supabase.table("Users").select("username").eq("id", user_id).execute()
+    if len(response.data) > 0:
+        return response.data[0].get("username", "User")
 
 def get_user_lists(user_id=None):
     """Get all of the lists created by the active user"""
@@ -117,6 +125,18 @@ def get_user_meals(user_id=None):
         user_id = session.get("user_id")
     response = supabase.table("Meals").select("*").eq("user_id", user_id).execute()
     return response.data
+
+
+def get_user_meals_str(user_id=None):
+    """Get all of the meals created by the active user as a formatted string"""
+    meals = get_user_meals(user_id=user_id)
+    meals.sort(key=lambda x: x['date'])
+    meal_str = "["
+    for meal in meals:
+        meal_str += f"\n  {{\"date\": \"{meal['date']}\", \"type\": {meal['type']}, \"summary\": \"{meal['summary']}\"}},"
+    meal_str += "\n]"
+    return meal_str
+    #return pd.DataFrame(meals).drop(columns=["id", "user_id"]).sort_values(by="date").to_csv(index=False)
 
 
 def update_meals(data):
@@ -189,6 +209,24 @@ def get_user_trips(user_id=None):
 
     return trips
 
+
+def get_user_trips_str(user_id=None):
+    """Get all of the trips created by the active user as a formatted string"""
+    if user_id is None:
+        user_id = session.get("user_id")
+    user_trips = get_user_trips(user_id=user_id)
+    user_trips_str = ""
+    user_trips.sort(key=lambda x: x['date'])
+    for trip in user_trips:
+        trip_date = trip.get("date", "unknown-date")
+        trip_summary = trip.get("summary", "No summary")
+        store_name = trip.get("name", "unknown-store")
+        user_trips_str += f"### Date: {trip_date}, Store: {store_name}, Summary: {trip_summary}\n"
+        trip_list = trip.get("Lists", [])
+        list_df = pd.DataFrame(trip_list)
+        user_trips_str += list_df.drop(columns=["id"]).to_csv(index=False) + "\n"
+
+    return user_trips_str
 
 
 def update_list(data):

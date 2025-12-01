@@ -1,66 +1,70 @@
-from dotenv import load_dotenv
-import os
+from database import get_user_meals_str, get_user_name, get_user_trips_str
 from google import genai
 
-from database import supabase, get_user_meals, get_user_data, get_user_trips
+# Display a prompt to the user
+print("Welcome to the Meal Planner and Shopping List Generator!")
+print("Please provide a prompt describing your upcoming shopping trip and meal preferences.")
+print("You should include detail such as the number of days, where you will be shopping, and any cravings.")
+print("***")
+user_request = input("Enter your prompt here: ")
 
-load_dotenv
-
-# Get user info (for myself, id=1)
+# Get user name, and meals/trips history as formatted strings
 user_id = 1
-user_data = get_user_data(user_id=user_id)
-#print("User Data\n", user_data)
-
-# Get all of the meals this user has logged
-user_meals = get_user_meals(user_id=user_id)
-#print("Meals\n", user_meals)
-
-# Get all of the trips this user has taken
-user_trips = get_user_trips(user_id=user_id)
-#print("Trips\n", user_trips)
-
-# User the data in a Gemini AI request to get meal and list suggestions
-# gemini_key: str = os.environ.get("GEMINI_API_KEY") or "unknown-key"
-user_data_str = str(user_data)
-user_meals_str = str(user_meals)
-user_trips_str = str(user_trips)
-
-user_request = input("Provide your prompt for meal and list suggestions:")
+user_name = get_user_name(user_id=user_id)
+user_meals_str = get_user_meals_str(user_id=user_id)
+user_trips_str = get_user_trips_str(user_id=user_id)
 
 client = genai.Client()
 
+# Create the prompt from the user request and their data
 prompt_content = f"""
 You are an intelligent meal planner and shopping list generator. Your task is to recommend a list of meals based on the user's history and a new trip request, and then generate a corresponding shopping list.
 
 ## 📋 Contextual Data
-1.  **User Profile:** {user_data_str}
-2.  **Meal History (for inspiration):** {user_meals_str}
-3.  **Trip History (for store/duration context):** {user_trips_str}
+1.  **User Name:** 
+{user_name}
 
-## 🎯 Task and Request
+2.  **Meal History (for inspiration):** 
+{user_meals_str}
+
+3.  **Trip History (for store/duration context):** 
+{user_trips_str}
+
+## Task and Request
 The user is planning a new trip with the following description: **'{user_request}'**.
 
 Based on the **number of days** specified in the request and the user's past meal/trip data, perform the following steps:
-1.  **Generate a MEAL PLAN:** Create a simple list of enough meals based on the user's prompt. Each item should be a simple sentence describing the meal (e.g., "Chicken with rice and broccoli").
-2.  **Generate a SHOPPING LIST:** Create a detailed list of all ingredients needed for the generated meal plan. The format must match the style of a typical store shopping list (e.g., list items with approximate quantities).
+1.  **Generate a MEAL PLAN:** 
+Create a simple list of enough meals based on the user's prompt. 
+Each item should be a simple sentence describing the meal (e.g., "Chicken with rice and broccoli").
+These should be inspired by the user's meal history but also varied to introduce new ideas.
+Consider which day of the week (Monday, Tuesday, ...) the request is being made in your planning.
 
-## 📝 Required Output Format
+2.  **Generate a SHOPPING LIST:** 
+Create a detailed list of all ingredients needed for the generated meal plan. 
+The format must match the style of a typical store shopping list (e.g., list items with approximate quantities).
+Try to estimate the user's current inventory based on recent shopping trips, rather than assuming they need everything from scratch.
+
+## Required Output Format
 Your entire response must be structured exactly as follows, using Markdown headings:
 
 ### MEAL PLAN
-- [ ] [Date], [Meal Type], [Meal 1 description]
-- [ ] [Date], [Meal Type], [Meal 2 description]
+- [ ] [Date in YYYY-MM-DD format], [Meal Type from ("Breakfast", "Hameikatako", "Lunch", or "Dinner")], [Meal 1 description]
+- [ ] [Date in YYYY-MM-DD format], [Meal Type from ("Breakfast", "Hameikatako", "Lunch", or "Dinner")],  [Meal 2 description]
 - [ ] ... 
 
 ### SHOPPING LIST
-- [ ] [Item Name], [Approximate Quantity]
-- [ ] [Item Name], [Approximate Quantity]
+- [ ] [Item Name], [Quantity as a plain number, no units]
+- [ ] [Item Name], [Quantity as a plain number, no units]
 - [ ] ...
 """
 
+# Call the Gemini API to generate the meal plan and shopping list
 response = client.models.generate_content(
     model="gemini-2.5-flash",
     contents=prompt_content
 )
 
-print(response.text)
+# Print the result for both the prompt and the response
+print("Prompt Content\n-------------\n", prompt_content, "\n")
+print("Response\n---------------\n", response.text, "\n")
