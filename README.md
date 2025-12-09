@@ -2,7 +2,9 @@
 I created this repository for tracking homework assignments for Harvard CS50x, before realizing they were already being tracked in the [CS50 Codespace](https://github.com/code50/16735129).
 It is now primarily for my development purposes on the final project, which is the subject of the rest of this Readme content.
 
-![Proof I did the course](CS50x.png)
+| CS50X Certificate                    | CS50AI Certificate                      |
+|--------------------------------------|-----------------------------------------|
+| ![Proof I did the course](CS50x.png) | ![Proof I did the AIcourse](CS50AI.png) |
 
 # CS50X Final Project: MealPlan
 
