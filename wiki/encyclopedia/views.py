@@ -62,6 +62,24 @@ def random(request):
     return redirect(f"/{random_entry}")
 
 
+def edit(request, title):
+    """
+    Edit an existing entry. GET shows the form pre-filled; POST saves changes.
+    """
+    if request.method == "POST":
+        content = request.POST.get("content")
+        # Overwrite the existing entry
+        util.save_entry(title, content)
+        return redirect(f"/{title}")
+
+    # GET: render the edit form with current content
+    md = util.get_entry(title)
+    return render(request, "encyclopedia/edit.html", {
+        "title": title,
+        "content": md or ""
+    })
+
+
 def search(request):
     # Get the search query from the request
     query = request.GET.get("q", "")

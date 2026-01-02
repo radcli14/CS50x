@@ -14,6 +14,7 @@ h1 {
 
 textarea {
     height: 90vh;
+    min-height: 256px;
     width: 80%;
 }
 

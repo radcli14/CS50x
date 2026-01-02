@@ -5,5 +5,11 @@
 {% endblock %}
 
 {% block body %}
+
     {{ content|safe }}
+
+    <div class="mb-3">
+        <a class="btn btn-primary" href="{% url 'edit' title %}">Edit</a>
+    </div>
+
 {% endblock %}
