@@ -34,6 +34,13 @@ def entry(request, title):
     })
 
 
+def random(request):
+    import random
+    entries = util.list_entries()
+    random_entry = random.choice(entries)
+    return redirect(f"/{random_entry}")
+
+
 def search(request):
     # Get the search query from the request
     query = request.GET.get("q", "")
