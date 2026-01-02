@@ -15,6 +15,27 @@ def index(request):
     })
 
 
+def create(request):
+    if request.method == "POST":
+        title = request.POST.get("title")
+        content = request.POST.get("content")
+
+        # Check if entry with this title already exists
+        if util.get_entry(title) is not None:
+            return render(request, "encyclopedia/create.html", {
+                "error": "An entry with this title already exists.",
+                "title": title,
+                "content": content
+            })
+
+        # Save the new entry and redirect to its page
+        util.save_entry(title, content)
+        return redirect(f"/{title}")
+
+    # If GET request, render the creation form
+    return render(request, "encyclopedia/create.html")
+
+
 def entry(request, title):
     # Redirect to index with query parameter if it exists
     if request.GET.get("q"):
