@@ -1,7 +1,22 @@
+from django.forms import Form, CharField, Textarea
 from django.shortcuts import render, redirect
 import markdown2
 
 from . import util
+
+
+class EntryForm(Form):
+    """
+    The Django form used for creating a new encyclopedia entry with title and content.
+    """
+    title = CharField(label="Title")
+    content = CharField(label="Content", widget=Textarea)
+
+    def __init__(self, title_disabled=False, *args, **kwargs):
+        super(EntryForm, self).__init__(*args, **kwargs)
+        self.fields['title'].disabled = title_disabled
+        self.fields['title'].widget.attrs["class"] = "form-control"
+        self.fields['content'].widget.attrs["class"] = "form-control"
 
 
 def index(request):
@@ -17,8 +32,16 @@ def index(request):
 
 def create(request):
     if request.method == "POST":
-        title = request.POST.get("title")
-        content = request.POST.get("content")
+        form = EntryForm(request.POST)
+        title = None
+        content = None
+        if form.is_valid():
+            title = form.cleaned_data["title"]
+            content = form.cleaned_data["content"]
+        else:
+            return render(request, "encyclopedia/create.html", {
+                "form": form
+            })
 
         # Check if entry with this title already exists
         if util.get_entry(title) is not None:
@@ -33,7 +56,10 @@ def create(request):
         return redirect(f"/{title}")
 
     # If GET request, render the creation form
-    return render(request, "encyclopedia/create.html")
+    form = EntryForm()
+    return render(request, "encyclopedia/create.html", {
+        "form": form
+    })
 
 
 def entry(request, title):
