@@ -20,6 +20,10 @@ class EntryForm(Form):
 
 
 def index(request):
+    """
+    The index page will either render the list of all entries or perform a search
+    if a query parameter is provided.
+    """
     # Call search if query parameter exists
     if request.GET.get("q"):
         return search(request)  
@@ -62,6 +66,33 @@ def create(request):
     })
 
 
+def edit(request, title):
+    """
+    Edit an existing entry. GET shows the form pre-filled; POST saves changes.
+    """
+    # POST: check for content, if exists, overwrite the existing entry
+    if request.method == "POST":
+        content = request.POST.get("content")
+        if content is not None:
+            util.save_entry(title, content)
+            return redirect(f"/{title}")
+        else:
+            return render(request, "encyclopedia/edit.html", {
+                "form": EntryForm(title_disabled=True, data=request.POST)
+            })
+
+    # GET: render the edit form with current content
+    md = util.get_entry(title)
+    form = EntryForm(title_disabled=True, initial={
+        "title": title,
+        "content": md or ""
+    })
+    return render(request, "encyclopedia/edit.html", {
+        "title": title,
+        "form": form
+    })
+
+
 def entry(request, title):
     # Redirect to index with query parameter if it exists
     if request.GET.get("q"):
@@ -86,24 +117,6 @@ def random(request):
     entries = util.list_entries()
     random_entry = random.choice(entries)
     return redirect(f"/{random_entry}")
-
-
-def edit(request, title):
-    """
-    Edit an existing entry. GET shows the form pre-filled; POST saves changes.
-    """
-    if request.method == "POST":
-        content = request.POST.get("content")
-        # Overwrite the existing entry
-        util.save_entry(title, content)
-        return redirect(f"/{title}")
-
-    # GET: render the edit form with current content
-    md = util.get_entry(title)
-    return render(request, "encyclopedia/edit.html", {
-        "title": title,
-        "content": md or ""
-    })
 
 
 def search(request):
