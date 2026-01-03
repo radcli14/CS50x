@@ -87,7 +87,7 @@ def search(request):
     # First check if there is an exact match, in which case, redirect to that entry
     entries = util.list_entries()
     if query in entries:
-        return entry(request, query)
+        return redirect(f"/{query}")
 
     # Otherwise, find all entries that match the query, and render that list
     matches = [entry for entry in entries if query.lower() in entry.lower()]
