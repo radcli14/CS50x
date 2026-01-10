@@ -3,26 +3,25 @@
 {% block body %}
     <h2>Active Listings</h2>
 
-    {% for listing in listings %}
-        <div class="card" style="width: 18rem;">
-            {% if listing.image_url %}
-                <img src="{{ listing.image_url }}" alt="{{ listing.title }}" style="max-width:200px;">
-            {% endif %}
-            <div class="card-body">
-                <h5 class="card-title">{{ listing.title }}</h5>
-                <p class="card-text">{{ listing.description }}</p>
-                <a href="#" class="btn btn-primary">View Listing</a>
-                
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item">Created by: {{ listing.creator.username }}</li>
-                    <li class="list-group-item">Category: {{ listing.category.name }}</li>
-                    <li class="list-group-item">Starting Bid: ${{ listing.starting_bid }}</li>
-                    <li class="list-group-item">Current Bid: ${{ listing.current_price }}</li>
-                </ul>
-                
+    <div class="container">
+        <div class="row row-cols-3">
+        {% for listing in listings %}
+            <div class="card text-center" style="width: 18rem;">
+                {% if listing.image_url %}
+                    <img class="card-img-top" 
+                         src="{{ listing.image_url }}" 
+                         alt="{{ listing.title }}" 
+                         style="max-height:18rem; object-fit: cover;">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title"><strong>{{ listing.title }}</strong> | ${{ listing.current_price }}</h5>
+                    <p class="card-text">{{ listing.description }}</p>
+                    <a href="{{ listing.id }}" class="btn btn-primary">View Listing</a>
+                </div>
             </div>
+        {% empty %}
+            <p>No active listings available.</p>
+        {% endfor %}
         </div>
-    {% empty %}
-        <p>No active listings available.</p>
-    {% endfor %}
+    </div>
 {% endblock %}
