@@ -1,5 +1,7 @@
+from urllib import request
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
+from django.forms import ModelForm, Form, CharField, Textarea
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
@@ -10,6 +12,30 @@ from .models import User, AuctionListing
 def index(request):
     return render(request, "auctions/index.html", context={
         "listings": AuctionListing.objects.all()
+    })
+
+
+class ListingForm(ModelForm):
+    class Meta:
+        model = AuctionListing
+        fields = ['title', 'description', 'starting_bid', 'image_url', 'category']
+
+
+def create(request):
+    if request.method == "POST":
+        form = ListingForm(request.POST)
+        if form.is_valid():
+            listing = form.save(commit=False)
+            listing.seller = request.user
+            listing.save()
+            return HttpResponseRedirect(reverse("index"))
+        else:
+            return render(request, "auctions/create.html", context={
+                "form": form
+            })
+        
+    return render(request, "auctions/create.html", context={
+        "form": ListingForm()
     })
 
 
