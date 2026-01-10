@@ -1,10 +1,11 @@
 from urllib import request
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from django.forms import ModelForm, Form, CharField, Textarea
+from django.forms import ModelForm
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
+
 
 from .models import User, AuctionListing
 
@@ -44,8 +45,24 @@ def create(request):
 
 
 def listing(request, listing_id):
+
+    listing = AuctionListing.objects.get(id=listing_id)
+    is_watching = request.user.watchlist.all().filter(id=listing_id).exists()
+
+    if request.method == "POST":
+        # Handle form submissions like watchlist, bids or comments here
+        if "watch" in request.POST:
+            if is_watching:
+                request.user.watchlist.remove(listing)
+            else:
+                request.user.watchlist.add(listing)
+            request.user.save()
+
+            return HttpResponseRedirect(reverse("listing", args=[listing_id]))
+
     return render(request, "auctions/listing.html", context={
-        "listing": AuctionListing.objects.get(id=listing_id)
+        "listing": listing,
+        "is_watching": is_watching
     })
 
 
@@ -102,4 +119,6 @@ def register(request):
 
 
 def watchlist(request):
-    return render(request, "auctions/watchlist.html")
+    return render(request, "auctions/index.html", context={
+        "listings": request.user.watchlist.all()
+    })
