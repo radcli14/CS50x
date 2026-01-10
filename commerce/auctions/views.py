@@ -7,7 +7,7 @@ from django.shortcuts import render
 from django.urls import reverse
 
 
-from .models import User, AuctionListing
+from .models import User, AuctionListing, Category, Bid, Comment
 
 
 def index(request):
@@ -17,7 +17,24 @@ def index(request):
 
 
 def categories(request):
-    return render(request, "auctions/categories.html")
+    return render(request, "auctions/categories.html", context={
+        "categories": Category.objects.all()
+    })
+
+
+def category(request, category_name):
+    matching = [category for category in Category.objects.all()
+                if category.shortname == category_name]
+    print([category.shortname for category in Category.objects.all()])
+    print("matching:", matching, category_name)
+    if not matching:
+        return HttpResponseRedirect(reverse("categories"))
+    category = matching[0]
+
+    return render(request, "auctions/index.html", context={
+        "listings": filter(lambda listing: listing.category == category, AuctionListing.objects.all()),
+        "category_name": category.name
+    })
 
 
 class ListingForm(ModelForm):
@@ -50,7 +67,7 @@ def listing(request, listing_id):
     is_watching = request.user.watchlist.all().filter(id=listing_id).exists()
 
     if request.method == "POST":
-        # Handle form submissions like watchlist, bids or comments here
+        # Handle tap of the add or remove from watchlist button
         if "watch" in request.POST:
             if is_watching:
                 request.user.watchlist.remove(listing)
@@ -120,5 +137,6 @@ def register(request):
 
 def watchlist(request):
     return render(request, "auctions/index.html", context={
+        "category_name": "Your Watchlist",
         "listings": request.user.watchlist.all()
     })

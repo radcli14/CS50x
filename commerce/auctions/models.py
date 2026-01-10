@@ -11,6 +11,10 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
+    
+    @property
+    def shortname(self):
+        return self.name.replace(" ", "_").lower()
 
 
 class AuctionListing(models.Model):
