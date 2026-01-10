@@ -23,6 +23,11 @@ class AuctionListing(models.Model):
 
     def __str__(self):
         return f"{self.title} by {self.seller.username} starting at ${self.starting_bid}"
+    
+    @property
+    def current_price(self):
+        highest_bid = self.bids.order_by('-amount').first()
+        return highest_bid.amount if highest_bid else self.starting_bid
 
 
 class Bid(models.Model):

@@ -3,5 +3,26 @@
 {% block body %}
     <h2>Active Listings</h2>
 
-    TODO
+    {% for listing in listings %}
+        <div class="card" style="width: 18rem;">
+            {% if listing.image_url %}
+                <img src="{{ listing.image_url }}" alt="{{ listing.title }}" style="max-width:200px;">
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ listing.title }}</h5>
+                <p class="card-text">{{ listing.description }}</p>
+                <a href="#" class="btn btn-primary">View Listing</a>
+                
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">Created by: {{ listing.creator.username }}</li>
+                    <li class="list-group-item">Category: {{ listing.category.name }}</li>
+                    <li class="list-group-item">Starting Bid: ${{ listing.starting_bid }}</li>
+                    <li class="list-group-item">Current Bid: ${{ listing.current_price }}</li>
+                </ul>
+                
+            </div>
+        </div>
+    {% empty %}
+        <p>No active listings available.</p>
+    {% endfor %}
 {% endblock %}
