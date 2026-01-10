@@ -15,6 +15,10 @@ def index(request):
     })
 
 
+def categories(request):
+    return render(request, "auctions/categories.html")
+
+
 class ListingForm(ModelForm):
     class Meta:
         model = AuctionListing
@@ -36,6 +40,12 @@ def create(request):
         
     return render(request, "auctions/create.html", context={
         "form": ListingForm()
+    })
+
+
+def listing(request, listing_id):
+    return render(request, "auctions/listing.html", context={
+        "listing": AuctionListing.objects.get(id=listing_id)
     })
 
 
@@ -89,3 +99,7 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "auctions/register.html")
+
+
+def watchlist(request):
+    return render(request, "auctions/watchlist.html")
