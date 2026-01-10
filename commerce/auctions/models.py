@@ -24,14 +24,22 @@ class AuctionListing(models.Model):
     starting_bid = models.DecimalField(max_digits=10, decimal_places=2)
     image_url = models.URLField(blank=True, null=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name="listings")
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return f"{self.title} by {self.seller.username} starting at ${self.starting_bid}"
     
     @property
     def current_price(self):
-        highest_bid = self.bids.order_by('-amount').first()
-        return highest_bid.amount if highest_bid else self.starting_bid
+        return self.highest_bid.amount if self.highest_bid else self.starting_bid
+
+    @property
+    def highest_bid(self):
+        return self.bids.order_by('-amount').first()
+    
+    @property
+    def winning_bidder(self):
+        return self.highest_bid.bidder if self.highest_bid else None
 
 
 class Bid(models.Model):

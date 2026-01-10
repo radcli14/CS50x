@@ -26,11 +26,40 @@
         <div class="card bg-light text-center">
             <p class="card-header">{{ listing.description }}</p>
             <h5 class="card-text"><strong>Current Price:</strong> ${{ listing.current_price }}</h5>
+            
             <p class="card-text"><strong>Category:</strong> {{ listing.category.name }}</p>
             {% if listing.image_url %}
                 <img src="{{ listing.image_url }}" alt="{{ listing.title }}" class="img-fluid mb-3" 
                      style="max-height:24rem; object-fit: contain;">
             {% endif %}
+
+            {% if is_seller and listing.is_active %}
+            <p class="text-muted"><em>You are the seller of this item.</em></p>
+                
+                <form action="{% url 'listing' listing.id %}" method="post" class="mb-3">
+                    {% csrf_token %}
+                    <input type="hidden" id="close" name="close" value="true" />
+                    <button type="submit" class="btn btn-danger">Close Auction</button>
+                </form>
+
+            {% elif not listing.is_active and is_winner %}
+                <h1 class="text-success"><strong>🥇 You Won! 🥇</strong></h1>    
+
+            {% elif not listing.is_active %}
+                <p class="text-muted"><em>This auction is closed.</em></p>   
+                <h5 class="card-text">Winner: {{ listing.winning_bidder }}</h5> 
+
+            {% else %}
+            <form action="{% url 'listing' listing.id %}" method="post" class="mb-3">
+                {% csrf_token %}
+                <input id="bid_amount" name="bid_amount" 
+                    value="{{ listing.current_price }}" 
+                    type="number"
+                    min="{{ listing.current_price }}" />
+                <button type="submit" class="btn btn-primary">Place Bid</button>
+            </form>
+            {% endif %}
+
             <p class="card-text text-muted"><strong>Created by:</strong> {{ listing.seller.username }}</p>
         </div>
     </div>
