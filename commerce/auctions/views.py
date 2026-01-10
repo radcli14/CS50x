@@ -88,6 +88,12 @@ def listing(request, listing_id):
         elif "close" in request.POST and is_seller:
             listing.is_active = False
             listing.save()
+
+        # Handle comment submission
+        elif "comment" in request.POST:
+            comment_content = request.POST["comment"]
+            comment = Comment(author=request.user, listing=listing, content=comment_content)
+            comment.save()
         
         # All actions redirect back to listing page
         return HttpResponseRedirect(reverse("listing", args=[listing_id]))
@@ -96,7 +102,8 @@ def listing(request, listing_id):
         "listing": listing,
         "is_watching": is_watching,
         "is_seller": is_seller,
-        "is_winner": is_winner
+        "is_winner": is_winner,
+        "comments": listing.comments.all()
     })
 
 
