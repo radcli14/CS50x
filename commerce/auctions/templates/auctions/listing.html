@@ -73,7 +73,6 @@
     {% empty %}
         <p>No comments yet. Be the first to comment!</p>
     {% endfor %}
-    <hr>
     <form action="{% url 'listing' listing.id %}" method="post" class="mb-3">
         {% csrf_token %}
         <div class="form-group">

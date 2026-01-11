@@ -1,6 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-
+from django.forms import ModelForm, TextInput, Textarea, NumberInput, Select
 
 class User(AbstractUser):
     watchlist = models.ManyToManyField('AuctionListing', blank=True, related_name="watched_by")
@@ -59,3 +59,34 @@ class Comment(models.Model):
     def __str__(self):
         return f"Comment by {self.author.username} on {self.listing.title}: {self.content[:20]}..."
     
+
+class ListingForm(ModelForm):
+    class Meta:
+        model = AuctionListing
+        fields = ['title', 'description', 'image_url', 'category', 'starting_bid']
+        widgets = {
+            "title": TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Provide a short name for your listing"
+                }),
+            "description": Textarea(attrs={
+                "class": "form-control",
+                "style": "max-height: 96px;",
+                "placeholder": "Write a few sentences about your item"
+                }),
+            "image_url": TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Supply a link to an image (optional)"
+                }),
+            "category": Select(attrs={
+                "class": "form-control",
+                "style": "width: 256px;"
+            }),
+            "starting_bid": NumberInput(attrs={
+                "class": "form-control",
+                "style": "width: 256px;",
+                "placeholder": "Minimum price (USD)",
+                "min": "0",
+                "step": "0.01"
+                }),
+        }

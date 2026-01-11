@@ -1,12 +1,11 @@
 from urllib import request
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from django.forms import ModelForm
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User, AuctionListing, Category, Bid, Comment
+from .models import User, AuctionListing, Category, Bid, Comment, ListingForm
 
 
 def index(request):
@@ -33,12 +32,6 @@ def category(request, category_name):
         "listings": filter(lambda listing: listing.category == category, AuctionListing.objects.all()),
         "category_name": category.name
     })
-
-
-class ListingForm(ModelForm):
-    class Meta:
-        model = AuctionListing
-        fields = ['title', 'description', 'starting_bid', 'image_url', 'category']
 
 
 def create(request):

@@ -5,6 +5,7 @@
     <form action="{% url 'create' %}" method="post" class="p-2">
         {% csrf_token %}
         {{ form }}
+        <hr>
         <button type="submit" class="btn btn-primary">Create Listing</button>
     </form>
 {% endblock %}
