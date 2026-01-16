@@ -45,8 +45,14 @@ function load_mailbox(mailbox) {
       emails.forEach(email => {
         // Create a div to hold each email summary
         const email_div = document.createElement('div');
-        email_div.className = 'email-summary';
-        email_div.classList.add(email.read ? 'email-read' : 'email-unread');
+        email_div.className = 'card';
+        email_div.style.cursor = 'pointer';
+        email_div.style.marginBottom = '10px';
+
+        if (email.read) {
+          email_div.classList.add('bg-secondary');
+          email_div.classList.add('text-white');
+        }
 
         // Build the title field, dependent on mailbox type
         let title_field = '';
@@ -58,8 +64,13 @@ function load_mailbox(mailbox) {
           
         // Add email details to the div
         email_div.innerHTML = `
-          <h6>${title_field}</h6>
-          <p><em>${email.subject}</em> on <span class="text-muted">${email.timestamp}</span></p>
+          <div class="card-body">
+            <div class="d-flex justify-content-between">
+              <strong>${title_field}</strong>
+              <span>${email.timestamp}</span>
+            </div>
+            <div>${email.subject}</div>
+          </div>
         `;
 
         // Add an event listener to read the email when clicked
@@ -89,7 +100,7 @@ function read_email(email_id) {
 
       // Show the email content
       document.querySelector('#emails-view').innerHTML = `
-        <h3>From: ${email.sender} <span class="text-muted">at ${email.timestamp}</span></h3>
+        <h3>From: ${email.sender} <span class="text-muted">on ${email.timestamp}</span></h3>
         <h5>To: ${email.recipients.join(', ')}</h5>
         <h5>Subject: ${email.subject}</h5>
         <hr>
@@ -125,7 +136,7 @@ function read_email(email_id) {
 
       // Add a reply button
       const reply_button = document.createElement('button');
-      reply_button.className = 'btn btn-sm btn-outline-secondary ml-2';
+      reply_button.className = 'btn btn-sm btn-outline-primary ml-2';
       reply_button.innerText = 'Reply';
       reply_button.addEventListener('click', () => {
         // Compose a reply
