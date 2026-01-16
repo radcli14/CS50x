@@ -103,6 +103,41 @@ function read_email(email_id) {
             read: true
         })
       });
+
+      // Add an archive/unarchive button
+      const archive_button = document.createElement('button');
+      archive_button.className = 'btn btn-sm btn-outline-primary';
+      archive_button.innerText = email.archived ? 'Unarchive' : 'Archive';
+      archive_button.addEventListener('click', () => {
+        // Toggle the archived status
+        fetch(`/emails/${email.id}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+              archived: !email.archived
+          })
+        })
+        .then(() => {
+          // After archiving/unarchiving, load the inbox
+          load_mailbox('inbox');
+        });
+      })
+      document.querySelector('#emails-view').appendChild(archive_button);
+
+      // Add a reply button
+      const reply_button = document.createElement('button');
+      reply_button.className = 'btn btn-sm btn-outline-secondary ml-2';
+      reply_button.innerText = 'Reply';
+      reply_button.addEventListener('click', () => {
+        // Compose a reply
+        compose_email();
+
+        // Pre-fill the compose fields
+        document.querySelector('#compose-recipients').value = email.sender;
+        let subject_prefix = email.subject.startsWith('Re:') ? '' : 'Re: ';
+        document.querySelector('#compose-subject').value = subject_prefix + email.subject;
+        document.querySelector('#compose-body').value = `\n\nOn ${email.timestamp}, ${email.sender} wrote:\n${email.body}`;
+      });
+      document.querySelector('#emails-view').appendChild(reply_button);
   });
 
   return false;
