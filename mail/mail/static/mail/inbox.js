@@ -33,6 +33,39 @@ function load_mailbox(mailbox) {
 
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
+
+  // Fetch emails for the mailbox listed as the argument
+  fetch(`/emails/${mailbox}`)
+  .then(response => response.json())
+  .then(emails => {
+      // Print emails
+      console.log(emails);
+
+      // List the emails that were returned for this mailbox in the emails-view
+      emails.forEach(email => {
+        // Create a div to hold each email summary
+        const email_div = document.createElement('div');
+        email_div.className = 'email-summary';
+        email_div.classList.add(email.read ? 'email-read' : 'email-unread');
+
+        // Build the title field, dependent on mailbox type
+        let title_field = '';
+        if (mailbox === 'sent') {
+          title_field = 'TO: ' + email.recipients.join(', ');
+        } else {
+          title_field = 'FROM: ' + email.sender;
+        }
+          
+        // Add email details to the div
+        email_div.innerHTML = `
+          <h6>${title_field}</h6>
+          <p><em>${email.subject}</em> on <span class="text-muted">${email.timestamp}</span></p>
+        `;
+
+        // Append the email div to the emails-view
+        document.querySelector('#emails-view').appendChild(email_div);
+      })
+  });
 }
 
 
