@@ -62,10 +62,50 @@ function load_mailbox(mailbox) {
           <p><em>${email.subject}</em> on <span class="text-muted">${email.timestamp}</span></p>
         `;
 
+        // Add an event listener to read the email when clicked
+        email_div.addEventListener('click', () => read_email(email.id));
+
         // Append the email div to the emails-view
         document.querySelector('#emails-view').appendChild(email_div);
       })
   });
+}
+
+
+function read_email(email_id) {
+  // Show the mailbox and hide other views
+  document.querySelector('#emails-view').style.display = 'block';
+  document.querySelector('#compose-view').style.display = 'none';
+
+    // Show a temporary header
+  document.querySelector('#emails-view').innerHTML = `<h3>Loading Email...</h3>`;
+
+  // Fetch the email by ID
+  fetch(`/emails/${email_id}`)
+  .then(response => response.json())
+  .then(email => {
+      // Print email
+      console.log(email);
+
+      // Show the email content
+      document.querySelector('#emails-view').innerHTML = `
+        <h3>From: ${email.sender} <span class="text-muted">at ${email.timestamp}</span></h3>
+        <h5>To: ${email.recipients.join(', ')}</h5>
+        <h5>Subject: ${email.subject}</h5>
+        <hr>
+        <p>${email.body}</p>
+      `;
+
+      // Mark the email as read
+      fetch(`/emails/${email.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+            read: true
+        })
+      });
+  });
+
+  return false;
 }
 
 
