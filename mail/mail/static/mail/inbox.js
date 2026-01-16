@@ -38,14 +38,41 @@ function load_mailbox(mailbox) {
 
 function send_email(event) {
 
-  console.log(event);
-
+  // Unpack the form data
   const recipients = document.querySelector('#compose-recipients').value;
   const subject = document.querySelector('#compose-subject').value;
   const body = document.querySelector('#compose-body').value;
 
   console.log('Sending email to:', recipients, "\nSubject:", subject, "\nBody:", body);
 
-  // stop form from submitting
+  // Send a POST request to /emails
+  fetch('/emails', {
+    method: 'POST',
+    body: JSON.stringify({
+        recipients: recipients,
+        subject: subject,
+        body: body
+    })
+  })
+  .then(response => response.json())
+  .then(result => {
+    if (result.error) {
+      // If there was an error, throw it to be caught below, nofifying user
+      throw new Error(result.error);
+    } else if (result.message) {
+      // Print result and redirect to sent folder on success (201 status code)
+      console.log(result);
+      
+      // Redirect to sent mailbox
+      load_mailbox('sent');
+    }
+  })
+  .catch(error => {
+    // Show alert on error codes
+    console.error('Error:', error);
+    alert(`An error occurred while sending the email.\n${error.message}`);
+  });
+
+  // Stop form from submitting, handle inside fetch result
   return false;  
 }
