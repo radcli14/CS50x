@@ -43,15 +43,15 @@ function load_mailbox(mailbox) {
 
       // List the emails that were returned for this mailbox in the emails-view
       emails.forEach(email => {
-        // Create a div to hold each email summary
-        const email_div = document.createElement('div');
-        email_div.className = 'card';
-        email_div.style.cursor = 'pointer';
-        email_div.style.marginBottom = '10px';
+        // Create a card to hold each email summary
+        const email_card = document.createElement('div');
+        email_card.className = 'card';
+        email_card.style.cursor = 'pointer';
+        email_card.style.marginBottom = '10px';
 
         if (email.read) {
-          email_div.classList.add('bg-secondary');
-          email_div.classList.add('text-white');
+          email_card.classList.add('bg-secondary');
+          email_card.classList.add('text-white');
         }
 
         // Build the title field, dependent on mailbox type
@@ -63,7 +63,7 @@ function load_mailbox(mailbox) {
         }
           
         // Add email details to the div
-        email_div.innerHTML = `
+        email_card.innerHTML = `
           <div class="card-body">
             <div class="d-flex justify-content-between">
               <strong>${title_field}</strong>
@@ -74,10 +74,10 @@ function load_mailbox(mailbox) {
         `;
 
         // Add an event listener to read the email when clicked
-        email_div.addEventListener('click', () => read_email(email.id));
+        email_card.addEventListener('click', () => read_email(email.id));
 
-        // Append the email div to the emails-view
-        document.querySelector('#emails-view').appendChild(email_div);
+        // Append the email card to the emails-view
+        document.querySelector('#emails-view').appendChild(email_card);
       })
   });
 }
@@ -98,14 +98,39 @@ function read_email(email_id) {
       // Print email
       console.log(email);
 
+      // Create a card to hold the email content
+      const email_card = document.createElement('div');
+      email_card.className = 'card bg-light';
+
       // Show the email content
-      document.querySelector('#emails-view').innerHTML = `
-        <h3>From: ${email.sender} <span class="text-muted">on ${email.timestamp}</span></h3>
-        <h5>To: ${email.recipients.join(', ')}</h5>
-        <h5>Subject: ${email.subject}</h5>
-        <hr>
-        <p>${email.body}</p>
+      email_card.innerHTML = `
+        <div class="card-header">
+          <div class="d-flex justify-content-between">
+            <h5>
+              <span style="display: inline-block; width: 96px;">From:</span> 
+              <strong>${email.sender}</strong>
+            </h5>
+            <span class="text-muted">on ${email.timestamp}</span>
+          </div>
+          <h5>
+            <span style="display: inline-block; width: 96px;">To:</span> 
+            <strong>${email.recipients.join(', ')}</strong>
+          </h5>
+          <h5>
+            <span style="display: inline-block; width: 96px;">Subject:</span> 
+            <strong>${email.subject}</strong>
+          </h5>
+        </div>
+        <div class="card-body">
+          ${email.body.replace(/\n/g, '<br>')}
+        </div>
       `;
+
+      // Eliminate the placeholder text
+      document.querySelector('#emails-view').innerHTML = '';
+
+      // Append the email card to the emails-view
+      document.querySelector('#emails-view').appendChild(email_card);
 
       // Mark the email as read
       fetch(`/emails/${email.id}`, {
@@ -115,9 +140,13 @@ function read_email(email_id) {
         })
       });
 
+      // Create a container for the archive and reply buttons on the bottom
+      const button_container = document.createElement('div');
+      button_container.className = 'button-group mt-3';
+
       // Add an archive/unarchive button
       const archive_button = document.createElement('button');
-      archive_button.className = 'btn btn-sm btn-outline-primary';
+      archive_button.className = 'btn btn-sm btn-outline-danger';
       archive_button.innerText = email.archived ? 'Unarchive' : 'Archive';
       archive_button.addEventListener('click', () => {
         // Toggle the archived status
@@ -132,7 +161,7 @@ function read_email(email_id) {
           load_mailbox('inbox');
         });
       })
-      document.querySelector('#emails-view').appendChild(archive_button);
+      button_container.appendChild(archive_button);
 
       // Add a reply button
       const reply_button = document.createElement('button');
@@ -148,7 +177,9 @@ function read_email(email_id) {
         document.querySelector('#compose-subject').value = subject_prefix + email.subject;
         document.querySelector('#compose-body').value = `\n\nOn ${email.timestamp}, ${email.sender} wrote:\n${email.body}`;
       });
-      document.querySelector('#emails-view').appendChild(reply_button);
+      button_container.appendChild(reply_button);
+
+      document.querySelector('#emails-view').appendChild(button_container);
   });
 
   return false;
