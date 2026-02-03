@@ -21,7 +21,9 @@
         <div class="card text-bg-light mb-3">
             <div class="card-header">{{ post.timestamp }}</div>
             <div class="card-body">
-                <h5 class="card-title">{{ post.author.username }}</h5>
+                <h5 class="card-title">
+                    <a href="{% url 'profile' post.author.username %}" class="text-decoration-none">{{ post.author.username }}</a>
+                </h5>
                 <p class="card-text">{{ post.content }}</p>
                 {% if user in post.liked_by.all %}
                     <i class="bi-heart-fill text-danger"></i>

@@ -23,6 +23,44 @@ def index(request):
     })
 
 
+def follow_user(request, username):
+    """Endpoint to follow or unfollow a user."""
+    if request.method == "POST":
+        try:
+            user_to_follow = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return HttpResponse("User not found.", status=404)
+
+        user = request.user
+        if user_to_follow in user.follows.all():
+            user.follows.remove(user_to_follow)
+        else:
+            user.follows.add(user_to_follow)
+
+        return HttpResponse("Successfully followed/unfollowed user.", status=200)
+    else:
+        return HttpResponse("Invalid request method.", status=400)
+
+
+def like_post(request, post_id):
+    """Entpoint to like or unlike a post."""
+    if request.method == "POST":
+        try:
+            post = Post.objects.get(id=post_id)
+        except Post.DoesNotExist:
+            return HttpResponse("Post not found.", status=404)
+
+        user = request.user
+        if user in post.liked_by.all():
+            post.liked_by.remove(user)
+        else:
+            post.liked_by.add(user)
+
+        return HttpResponse("Successfully liked/unliked post.", status=200)
+    else:
+        return HttpResponse("Invalid request method.", status=400)
+
+
 def login_view(request):
     if request.method == "POST":
 
