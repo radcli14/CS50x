@@ -5,6 +5,8 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
+import json
+
 from .models import User, Post
 
 
@@ -30,19 +32,26 @@ def index(request):
 
 def follow_user(request, username):
     """Endpoint to follow or unfollow a user."""
-    if request.method == "POST":
+    if request.method == "GET":
         try:
             user_to_follow = User.objects.get(username=username)
         except User.DoesNotExist:
             return HttpResponse("User not found.", status=404)
 
+        # The response, which JS will use to update the front end
+        response = {}
+
+        # Follow or unfollow, depending on prior state
         user = request.user
         if user_to_follow in user.follows.all():
             user.follows.remove(user_to_follow)
+            response["status"] = "unfollowed"
         else:
             user.follows.add(user_to_follow)
+            response["status"] = "followed"
 
-        return HttpResponse("Successfully followed/unfollowed user.", status=200)
+        response["follower_count"] = user_to_follow.followers.count()
+        return HttpResponse(json.dumps(response), status=200)
     else:
         return HttpResponse("Invalid request method.", status=400)
 

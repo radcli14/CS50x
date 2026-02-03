@@ -13,7 +13,7 @@
                         <thead>
                             <tr>
                                 <th>{{ profile_user.posts.count }}</th>
-                                <th>{{ profile_user.followers.count }}</th>
+                                <th id="follower-count">{{ profile_user.followers.count }}</th>
                                 <th>{{ profile_user.follows.count }}</th>
                             </tr>
                         </thead>
@@ -25,10 +25,15 @@
                             </tr>
                         </tbody>
                     </table>
-                    {% if user != profile_user %}
-                    <button class="btn btn-primary">
-                        Follow
-                    </button>
+                    {% if user.is_authenticated and user != profile_user %}
+                    {% csrf_token %}
+                        <button class="btn btn-primary" id="follow-button" data-username="{{ profile_user.username }}">
+                            {% if user in profile_user.followers.all %}
+                                Unfollow
+                            {% else %}
+                                Follow
+                            {% endif %}
+                        </button>
                     {% endif %}
                 </div>
             </div>
