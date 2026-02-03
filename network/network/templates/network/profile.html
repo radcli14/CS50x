@@ -1,0 +1,53 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+    <div class="card text-bg-dark mb-3">
+        <div class="row g-0">
+            <div class="col-md-4">
+                <img src="https://radcli14.github.io/ARMOR/images/armorIconIkurrina.png" class="img-fluid rounded-start" alt="Profile Icon">
+            </div>
+            <div class="col-md-8">
+                <div class="card-body">
+                    <div class="card-title"><h2>{{ profile_user.username }}</h2></div>
+                    <table class="table table-dark table-sm" style="max-width: 256px;">
+                        <thead>
+                            <tr>
+                                <th>{{ profile_user.posts.count }}</th>
+                                <th>{{ profile_user.followers.count }}</th>
+                                <th>{{ profile_user.follows.count }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>posts</td>
+                                <td>followers</td>
+                                <td>following</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <button class="btn btn-primary">
+                        Follow
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr>
+    {% for post in posts %}
+        <div class="card text-bg-light mb-3">
+            <div class="card-header">{{ post.timestamp }}</div>
+            <div class="card-body">
+                <h5 class="card-title">{{ post.author.username }}</h5>
+                <p class="card-text">{{ post.content }}</p>
+                {% if user in post.liked_by.all %}
+                    <i class="bi-heart-fill text-danger"></i>
+                {% else %}
+                    <i class="bi-heart"></i>
+                {% endif %}
+                <em>Liked by {{ post.liked_by.count }} users</em>
+            </div>
+        </div>
+    {% empty %}
+        <p>No posts yet.</p>
+    {% endfor %}
+{% endblock %}

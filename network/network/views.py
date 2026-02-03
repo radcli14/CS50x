@@ -48,6 +48,21 @@ def logout_view(request):
     return HttpResponseRedirect(reverse("index"))
 
 
+def profile(request, username):
+    """View for a user's profile page."""
+    try:
+        user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        return render(request, "network/profile.html", {
+            "message": "User does not exist."
+        })
+
+    return render(request, "network/profile.html", {
+        "profile_user": user,
+        "posts": user.posts.all().order_by("-timestamp")
+    })
+
+
 def register(request):
     if request.method == "POST":
         username = request.POST["username"]
