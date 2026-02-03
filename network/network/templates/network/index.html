@@ -2,15 +2,16 @@
 
 {% block body %}
     {% if user.is_authenticated %}
-    <h3>New Post</h3>
-    <div class="card text bg-secondary mb-3">
+    
+    <div class="card text-bg-success mb-3">
         <div class="card-body">
+            <div class="card-title"><h3>Create a New Post</h3></div>
             <form method="post">
                 {% csrf_token %}
                 <div class="form-group">
                     <textarea class="form-control mb-2" name="content" placeholder="What's on your mind?"></textarea>
                 </div>
-                <input type="submit" class="btn btn-primary"  value="Post">
+                <input type="submit" class="btn btn-outline-light"  value="Post">
             </form>
         </div>
     </div>

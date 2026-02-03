@@ -61,6 +61,20 @@ def edit_post(request):
         return None
 
 
+def following(request):
+    """View for the 'Following' page, showing posts from followed users."""
+    # Get the list of users that the current user is following
+    user = request.user
+    followed_users = user.follows.all()
+
+    # Get posts from followed users
+    posts = Post.objects.filter(author__in=followed_users).order_by("-timestamp")
+
+    return render(request, "network/following.html", {
+        "page": get_post_page(request, posts)
+    })
+
+
 def follow_user(request, username):
     """Endpoint to follow or unfollow a user."""
     if request.method == "GET":
