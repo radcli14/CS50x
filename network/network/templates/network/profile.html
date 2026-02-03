@@ -40,21 +40,6 @@
         </div>
     </div>
     <hr>
-    {% for post in posts %}
-        <div class="card text-bg-light mb-3">
-            <div class="card-header">{{ post.timestamp }}</div>
-            <div class="card-body">
-                <h5 class="card-title">{{ post.author.username }}</h5>
-                <p class="card-text">{{ post.content }}</p>
-                {% if user in post.liked_by.all %}
-                    <i class="bi-heart-fill text-danger"></i>
-                {% else %}
-                    <i class="bi-heart"></i>
-                {% endif %}
-                <em>Liked by {{ post.liked_by.count }} users</em>
-            </div>
-        </div>
-    {% empty %}
-        <p>No posts yet.</p>
-    {% endfor %}
+    <h3>Posts</h3>
+    
 {% endblock %}

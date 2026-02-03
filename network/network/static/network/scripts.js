@@ -6,8 +6,28 @@ document.addEventListener('DOMContentLoaded', function() {
         follow_button.addEventListener('click', follow);
     }
 
+    const edit_buttons = document.querySelectorAll('.edit-post');
+    edit_buttons.forEach(button => {
+        button.addEventListener('click', edit);
+    });
 });
 
+/// Respond to clicking the Edit button on a post
+function edit() {
+    console.log('Edit button clicked for post id:', this.dataset.id);
+    const postId = this.dataset.id;
+    const postContent = document.querySelector(`#post-content-${postId}`);
+    const editForm = document.querySelector(`#edit-post-${postId}`);
+    if (editForm.style.display === 'block') {
+        postContent.style.display = 'block';
+        editForm.style.display = 'none';
+    } else {
+        postContent.style.display = 'none';
+        editForm.style.display = 'block';
+    }
+}
+
+/// Follow or unfollow a user based on what is currently onscreen
 function follow(event) {
     const username = event.target.dataset.username;
     const textContent = event.target.textContent.trim();

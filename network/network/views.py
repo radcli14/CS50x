@@ -22,11 +22,8 @@ def index(request):
     
     # Show the index page with all posts
     posts = Post.objects.all().order_by("-timestamp")
-    paginator = Paginator(posts, 10)
-    page_number = request.GET.get("page")
-    post_page = paginator.get_page(page_number)
     return render(request, "network/index.html", {
-        "page": post_page
+        "page": get_post_page(request, posts)
     })
 
 
@@ -54,6 +51,14 @@ def follow_user(request, username):
         return HttpResponse(json.dumps(response), status=200)
     else:
         return HttpResponse("Invalid request method.", status=400)
+
+
+def get_post_page(request, posts):
+    """Helper function to paginate posts and return the appropriate page."""
+    paginator = Paginator(posts, 10)
+    page_number = request.GET.get("page")
+    post_page = paginator.get_page(page_number)
+    return post_page
 
 
 def like_post(request, post_id):
@@ -109,9 +114,10 @@ def profile(request, username):
             "message": "User does not exist."
         })
 
+    posts = user.posts.all().order_by("-timestamp")
     return render(request, "network/profile.html", {
         "profile_user": user,
-        "posts": user.posts.all().order_by("-timestamp")
+        "page": get_post_page(request, posts)
     })
 
 
