@@ -1,14 +1,37 @@
 {% extends "network/layout.html" %}
 
 {% block body %}
-    <h1>New Post</h1>
-    <form method="post">
-        {% csrf_token %}
-        <div class="form-group">
-            <input class="form-control" name="content" placeholder="What's on your mind?">
+    <h2>New Post</h2>
+    <div class="card text bg-secondary mb-3">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <input class="form-control" name="content" placeholder="What's on your mind?">
+                </div>
+                <input type="submit" class="btn btn-primary"  value="Post">
+            </form>
         </div>
-        <input type="submit" class="btn btn-primary"  value="Post">
-    </form>
-    <h1>All Posts</h1>
-    TODO
+    </div>
+
+    <hr>
+
+    <h2>All Posts</h2>
+    {% for post in posts %}
+        <div class="card text-bg-light mb-3">
+            <div class="card-header">{{ post.timestamp }}</div>
+            <div class="card-body">
+                <h5 class="card-title">{{ post.author.username }}</h5>
+                <p class="card-text">{{ post.content }}</p>
+                {% if user in post.liked_by.all %}
+                    <i class="bi-heart-fill text-danger"></i>
+                {% else %}
+                    <i class="bi-heart"></i>
+                {% endif %}
+                <em>Liked by {{ post.liked_by.count }} users</em>
+            </div>
+        </div>
+    {% empty %}
+        <p>No posts yet.</p>
+    {% endfor %}
 {% endblock %}

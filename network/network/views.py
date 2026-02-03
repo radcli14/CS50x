@@ -4,15 +4,23 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User
+from .models import User, Post
 
 
 def index(request):
-    return render(request, "network/index.html")
-
-
-def all_posts(request):
-    return render(request, "network/allposts.html")
+    """Main pain, displaying 'New Post' field and 'All Posts'"""
+    # If a user posted, update the database, and redirect to index
+    if request.method == "POST":
+        content = request.POST["content"]
+        author = request.user
+        post = Post(author=author, content=content)
+        post.save()
+        return HttpResponseRedirect(reverse("index"))
+    
+    # Show the index page with all posts
+    return render(request, "network/index.html", {
+        "posts": Post.objects.all().order_by("-timestamp")
+    })
 
 
 def login_view(request):
