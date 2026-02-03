@@ -79,12 +79,13 @@
                             </form>
                         {% endif %}
 
-                        {% if user in post.liked_by.all %}
-                            <i class="bi-heart-fill text-danger"></i>
-                        {% else %}
-                            <i class="bi-heart"></i>
-                        {% endif %}
-                        <em>Liked by {{ post.liked_by.count }} users</em>
+                        <button class="btn btn-sm like-post" data-id="{{ post.id }}">
+                            {% if user in post.liked_by.all %}
+                                <i class="bi-heart-fill text-danger"> {{ post.liked_by.count }}</i>
+                            {% else %}
+                                <i class="bi-heart"> {{ post.liked_by.count }}</i>
+                            {% endif %}
+                        </button>
                     </div>
                 </div>
             {% empty %}

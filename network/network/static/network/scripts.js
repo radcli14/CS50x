@@ -18,6 +18,11 @@ document.addEventListener('DOMContentLoaded', function() {
             save(parentForm.dataset.id);
         });
     });
+
+    // Listeners for the like buttons
+    document.querySelectorAll('.like-post').forEach(button => {
+        button.addEventListener('click', like);
+    });
 });
 
 /// Respond to clicking the Edit button on a post
@@ -74,4 +79,26 @@ function save(postId) {
     postContent.innerHTML = newContent;
     postContent.style.display = 'block';
     editForm.style.display = 'none';
+}
+
+/// When a like button is clicked, send request to server to like/unlike post, and update icon and count
+function like() {
+    const postId = this.dataset.id;
+    console.log('Like button clicked for post id:', postId);
+    fetch(`/like/${postId}`, {
+        method: 'GET'
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Success:', data);
+        // Update like count and icon
+        if (data.liked) {
+            this.innerHTML = `<i class="bi bi-heart-fill text-danger"> ${data.like_count}</i>`;
+        } else {
+            this.innerHTML = `<i class="bi bi-heart"> ${data.like_count}</i>`;
+        }
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
 }

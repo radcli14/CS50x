@@ -111,19 +111,26 @@ def get_post_page(request, posts):
 
 def like_post(request, post_id):
     """Entpoint to like or unlike a post."""
-    if request.method == "POST":
+    if request.method == "GET":
+        # Detect if this is a valid post
         try:
             post = Post.objects.get(id=post_id)
         except Post.DoesNotExist:
             return HttpResponse("Post not found.", status=404)
 
+        # Like or unlike the post, depending on prior state
         user = request.user
         if user in post.liked_by.all():
             post.liked_by.remove(user)
         else:
             post.liked_by.add(user)
 
-        return HttpResponse("Successfully liked/unliked post.", status=200)
+        # Respond with the new like status and count
+        response = {
+            "liked": user in post.liked_by.all(),
+            "like_count": post.liked_by.count()
+        }
+        return HttpResponse(json.dumps(response), status=200)
     else:
         return HttpResponse("Invalid request method.", status=400)
 
