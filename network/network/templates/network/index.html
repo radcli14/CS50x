@@ -1,18 +1,20 @@
 {% extends "network/layout.html" %}
 
 {% block body %}
+    {% if user.is_authenticated %}
     <h3>New Post</h3>
     <div class="card text bg-secondary mb-3">
         <div class="card-body">
             <form method="post">
                 {% csrf_token %}
                 <div class="form-group">
-                    <input class="form-control" name="content" placeholder="What's on your mind?">
+                    <textarea class="form-control mb-2" name="content" placeholder="What's on your mind?"></textarea>
                 </div>
                 <input type="submit" class="btn btn-primary"  value="Post">
             </form>
         </div>
     </div>
+    {% endif %}
 
     <h3>All Posts</h3>
     

@@ -6,9 +6,17 @@ document.addEventListener('DOMContentLoaded', function() {
         follow_button.addEventListener('click', follow);
     }
 
-    const edit_buttons = document.querySelectorAll('.edit-post');
-    edit_buttons.forEach(button => {
+    // Listeners for the edit buttons
+    document.querySelectorAll('.edit-post').forEach(button => {
         button.addEventListener('click', edit);
+    });
+
+    // Listeners for the save buttons inside the edit forms
+    document.querySelectorAll('.save-post').forEach(button => {
+        const parentForm = button.closest('.edit-post-form');
+        button.addEventListener('click', function() {
+            save(parentForm.dataset.id);
+        });
     });
 });
 
@@ -18,10 +26,13 @@ function edit() {
     const postId = this.dataset.id;
     const postContent = document.querySelector(`#post-content-${postId}`);
     const editForm = document.querySelector(`#edit-post-${postId}`);
+    
     if (editForm.style.display === 'block') {
+        // Form was open and editable, now closing it
         postContent.style.display = 'block';
         editForm.style.display = 'none';
     } else {
+        // Form was closed, now opening it for editing
         postContent.style.display = 'none';
         editForm.style.display = 'block';
     }
@@ -49,4 +60,18 @@ function follow(event) {
     .catch((error) => {
         console.error('Error:', error);
     });
+}
+
+/// When save button is clicked, update the content and hide the edit form
+function save(postId) {
+    console.log('Save button clicked for post id:', postId);
+    const postContent = document.querySelector(`#post-content-${postId}`);
+    const editForm = document.querySelector(`#edit-post-${postId}`);
+
+    // Set the postContent to whats in the edit form, and then toggle visibility
+    const newContent = document.querySelector(`#textarea-${postId}`).value.trim();
+    console.log("New content to save:", newContent);
+    postContent.innerHTML = newContent;
+    postContent.style.display = 'block';
+    editForm.style.display = 'none';
 }

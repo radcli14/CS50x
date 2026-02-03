@@ -11,7 +11,12 @@ from .models import User, Post
 
 
 def index(request):
-    """Main pain, displaying 'New Post' field and 'All Posts'"""
+    """Main page, displaying 'New Post' field and 'All Posts'"""
+    # If this is an edit to an existing post, handle it, the basic HTTP response will render in a hidden iFrame
+    edit_response = edit_post(request)
+    if edit_response is not None:
+        return edit_response
+    
     # If a user posted, update the database, and redirect to index
     if request.method == "POST":
         content = request.POST["content"]
@@ -25,6 +30,35 @@ def index(request):
     return render(request, "network/index.html", {
         "page": get_post_page(request, posts)
     })
+
+
+def edit_post(request):
+    """Endpoint to edit a post's content, returns an HTTPResponse if a post was found, otherwise None."""
+    if request.method == "POST":
+        # If there is a post_id field in the post data, then it came from the edit post form
+        post_id = request.POST.get("post_id")
+        if post_id is None:
+            return None
+        
+        # Try to get the post being edited
+        try:
+            post_id = int(post_id)
+            post = Post.objects.get(id=post_id)
+        except (Post.DoesNotExist, ValueError):
+            return HttpResponse("Post not found.", status=404)
+
+        # Verify that the user is the author of this post (security check)
+        if post.author != request.user:
+            return HttpResponse("You do not have permission to edit this post.", status=403)
+
+        # Update the post content
+        post.content = request.POST.get("content", "")
+        post.save()
+
+        return HttpResponse(f"Post {post_id} successfully edited.", status=200)
+    else:
+        # No post ID was provided, so this is not an edit post request
+        return None
 
 
 def follow_user(request, username):
@@ -107,6 +141,12 @@ def logout_view(request):
 
 def profile(request, username):
     """View for a user's profile page."""
+    # If this is an edit to an existing post, handle it, the basic HTTP response will render in a hidden iFrame
+    edit_response = edit_post(request)
+    if edit_response is not None:
+        return edit_response
+    
+    # Check that the user exists, render an error if not found
     try:
         user = User.objects.get(username=username)
     except User.DoesNotExist:
@@ -114,6 +154,7 @@ def profile(request, username):
             "message": "User does not exist."
         })
 
+    # Render the user's profile page
     posts = user.posts.all().order_by("-timestamp")
     return render(request, "network/profile.html", {
         "profile_user": user,

@@ -68,11 +68,13 @@
                         </h5>
                         <p class="card-text" id="post-content-{{ post.id }}">{{ post.content }}</p>
                         {% if user == post.author %}
-                            <form method="post" class="edit-post-form" id="edit-post-{{ post.id }}" data-id="{{ post.id }}" style="display: none;">
+                            <iframe name="form-result-{{ post.id }}" id="form-result-{{ post.id }}" style="display: none;"></iframe>
+                            <form method="post" class="edit-post-form" id="edit-post-{{ post.id }}" data-id="{{ post.id }}" style="display: none;" target="form-result-{{ post.id }}">
                                 {% csrf_token %}
                                 <div class="form-group">
-                                    <input class="form-control" name="content" value="{{ post.content }}">
-                                    <input type="submit" class="btn btn-primary btn-sm mt-2" value="Save">
+                                    <input type="hidden" name="post_id" value="{{ post.id }}">
+                                    <textarea class="form-control" name="content" id="textarea-{{ post.id }}">{{ post.content }}</textarea>
+                                    <input type="submit" class="btn btn-primary btn-sm mt-2 mb-2 save-post" value="Save">
                                 </div>
                             </form>
                         {% endif %}
