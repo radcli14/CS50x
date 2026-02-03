@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate, login, logout
+from django.core.paginator import Paginator
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
@@ -18,8 +19,12 @@ def index(request):
         return HttpResponseRedirect(reverse("index"))
     
     # Show the index page with all posts
+    posts = Post.objects.all().order_by("-timestamp")
+    paginator = Paginator(posts, 10)
+    page_number = request.GET.get("page")
+    post_page = paginator.get_page(page_number)
     return render(request, "network/index.html", {
-        "posts": Post.objects.all().order_by("-timestamp")
+        "page": post_page
     })
 
 
